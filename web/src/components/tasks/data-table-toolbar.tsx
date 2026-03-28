@@ -8,7 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 
 import { statuses, types, priorities } from "./data"
-import { CreateIssueDialog } from "~/components/CreateIssueDialog"
+import { CreateIssueDrawer } from "~/components/CreateIssueDialog"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -73,7 +73,7 @@ export function DataTableToolbar<TData>({
         </div>
       </div>
       {showCreate && (
-        <CreateIssueDialog onClose={() => setShowCreate(false)} />
+        <CreateIssueDrawer onClose={() => setShowCreate(false)} />
       )}
     </>
   )
