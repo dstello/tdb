@@ -1,6 +1,6 @@
 # TD — Issue Tracker Front End
 
-A Kanban-style issue tracker front end built with React, TanStack Router, TanStack Query, and Tailwind CSS. It connects to the `td serve` backend API and provides a real-time board view for managing issues through their lifecycle.
+A task-list-style issue tracker front end built with React, TanStack Router, TanStack Query, shadcn/ui, and Tailwind CSS. It connects to the `td serve` backend API and provides a filterable, sortable data table for managing issues through their lifecycle.
 
 ## Tech Stack
 
@@ -8,6 +8,8 @@ A Kanban-style issue tracker front end built with React, TanStack Router, TanSta
 - **TanStack Start** — Full-stack React framework (SSR-capable via Vite plugin)
 - **TanStack Router** — Type-safe file-based routing
 - **TanStack Query** — Server state management with automatic caching and refetching
+- **TanStack Table** — Headless data table with sorting, filtering, and pagination
+- **shadcn/ui** — Accessible component primitives (table, badge, button, dialog, command, etc.)
 - **Tailwind CSS v4** — Utility-first styling
 - **Vite 8** — Dev server and bundler
 - **TypeScript 6** — Type safety throughout
@@ -56,18 +58,30 @@ The production server runs from `.output/server/index.mjs`.
 web/
 ├── src/
 │   ├── components/
-│   │   ├── CreateIssueDialog.tsx   # Modal dialog for creating new issues
-│   │   └── IssueCard.tsx           # Shared card, badge, and icon components
+│   │   ├── tasks/
+│   │   │   ├── columns.tsx               # Column definitions for the issue data table
+│   │   │   ├── data.tsx                  # Status, type, and priority definitions with icons
+│   │   │   ├── data-table.tsx            # Generic data table component
+│   │   │   ├── data-table-column-header.tsx  # Sortable column header
+│   │   │   ├── data-table-faceted-filter.tsx # Multi-select faceted filter popover
+│   │   │   ├── data-table-pagination.tsx     # Pagination controls
+│   │   │   ├── data-table-row-actions.tsx    # Row action dropdown (view, transition, delete)
+│   │   │   ├── data-table-toolbar.tsx        # Toolbar with search, filters, and create button
+│   │   │   └── data-table-view-options.tsx   # Column visibility toggle
+│   │   ├── ui/                           # shadcn/ui component primitives
+│   │   └── CreateIssueDialog.tsx         # Modal dialog for creating new issues
 │   ├── lib/
-│   │   ├── api.ts                  # API client, types, and all endpoint functions
-│   │   └── sse.ts                  # Server-Sent Events hook for real-time updates
+│   │   ├── api.ts                        # API client, types, and all endpoint functions
+│   │   ├── sse.ts                        # Server-Sent Events hook for real-time updates
+│   │   └── utils.ts                      # Utility functions (cn class merger)
 │   ├── routes/
-│   │   ├── __root.tsx              # Root layout (nav bar, providers, global head)
-│   │   ├── index.tsx               # Dashboard / Kanban board view
-│   │   └── issues.$id.tsx          # Issue detail page
-│   ├── router.tsx                  # TanStack Router setup
-│   ├── routeTree.gen.ts            # Auto-generated route tree (do not edit)
-│   └── styles.css                  # Tailwind CSS entry point
+│   │   ├── __root.tsx                    # Root layout (nav bar, providers, global head)
+│   │   ├── index.tsx                     # Issue list / data table view
+│   │   └── issues.$id.tsx               # Issue detail page
+│   ├── router.tsx                        # TanStack Router setup
+│   ├── routeTree.gen.ts                  # Auto-generated route tree (do not edit)
+│   └── styles.css                        # Tailwind CSS entry point with shadcn theme
+├── components.json                       # shadcn/ui configuration
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
@@ -75,26 +89,19 @@ web/
 
 ## Features
 
-### Kanban Board (`/`)
+### Issue Data Table (`/`)
 
-The main dashboard displays issues in a multi-column Kanban layout:
+The main view displays all issues in a sortable, filterable data table (inspired by the [shadcn/ui tasks example](https://ui.shadcn.com/examples/tasks)):
 
-- **Ready** — Issues open and available to start
-- **In Progress** — Actively being worked on
-- **In Review** — Submitted for review (combines pending review and reviewable)
-- **Needs Rework** — Rejected during review, needs changes
-- **Blocked** — Waiting on dependencies or external factors
-- **Closed** — Completed issues (toggled via checkbox)
-
-Each column shows a count badge and renders issue cards with type icons, priority badges, labels, and truncated titles.
-
-Additional board features:
-
-- **Focused Issue** — A highlighted, pinned issue displayed at the top of the board
-- **Search** — Filter issues by text in real time
-- **Show Closed** — Toggle to include or hide closed issues
-- **Quick Stats** — Total issues, completion rate, and issues created today
-- **Create Issue** — Modal dialog with title, type, priority, and description fields
+- **Columns** — Issue ID, title (with type badge), status, type, priority
+- **Sorting** — Click column headers to sort ascending/descending
+- **Faceted filters** — Filter by status, type, or priority with multi-select popovers
+- **Text search** — Filter issues by title
+- **Pagination** — Configurable rows per page (10–50), page navigation
+- **Row selection** — Checkbox selection for future batch operations
+- **Column visibility** — Toggle which columns are shown via the View menu
+- **Row actions** — Each row has a dropdown with View Details, status transitions, and Delete
+- **Create issue** — "New Issue" button opens a dialog with title, type, priority, and description fields
 
 ### Issue Detail (`/issues/:id`)
 

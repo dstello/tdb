@@ -6,37 +6,40 @@ import {
   transitionIssue,
   addComment,
   deleteIssue,
-  type Issue,
 } from '~/lib/api'
-import { PriorityBadge, StatusBadge, TypeIcon } from '~/components/IssueCard'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Separator } from '~/components/ui/separator'
+import { statuses, types, priorities } from '~/components/tasks/data'
 
 export const Route = createFileRoute('/issues/$id')({
   component: IssueDetailPage,
 })
 
-const transitionMap: Record<string, { action: string; label: string; color: string }[]> = {
+const transitionMap: Record<string, { action: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[]> = {
   open: [
-    { action: 'start', label: 'Start', color: 'bg-blue-600 hover:bg-blue-500' },
-    { action: 'review', label: 'Submit for Review', color: 'bg-purple-600 hover:bg-purple-500' },
-    { action: 'block', label: 'Block', color: 'bg-red-600 hover:bg-red-500' },
-    { action: 'close', label: 'Close', color: 'bg-zinc-600 hover:bg-zinc-500' },
+    { action: 'start', label: 'Start', variant: 'default' },
+    { action: 'review', label: 'Submit for Review', variant: 'secondary' },
+    { action: 'block', label: 'Block', variant: 'destructive' },
+    { action: 'close', label: 'Close', variant: 'outline' },
   ],
   in_progress: [
-    { action: 'review', label: 'Submit for Review', color: 'bg-purple-600 hover:bg-purple-500' },
-    { action: 'block', label: 'Block', color: 'bg-red-600 hover:bg-red-500' },
-    { action: 'close', label: 'Close', color: 'bg-zinc-600 hover:bg-zinc-500' },
+    { action: 'review', label: 'Submit for Review', variant: 'default' },
+    { action: 'block', label: 'Block', variant: 'destructive' },
+    { action: 'close', label: 'Close', variant: 'outline' },
   ],
   in_review: [
-    { action: 'approve', label: 'Approve', color: 'bg-emerald-600 hover:bg-emerald-500' },
-    { action: 'reject', label: 'Reject', color: 'bg-orange-600 hover:bg-orange-500' },
-    { action: 'close', label: 'Close', color: 'bg-zinc-600 hover:bg-zinc-500' },
+    { action: 'approve', label: 'Approve', variant: 'default' },
+    { action: 'reject', label: 'Reject', variant: 'destructive' },
+    { action: 'close', label: 'Close', variant: 'outline' },
   ],
   blocked: [
-    { action: 'unblock', label: 'Unblock', color: 'bg-emerald-600 hover:bg-emerald-500' },
-    { action: 'close', label: 'Close', color: 'bg-zinc-600 hover:bg-zinc-500' },
+    { action: 'unblock', label: 'Unblock', variant: 'default' },
+    { action: 'close', label: 'Close', variant: 'outline' },
   ],
   closed: [
-    { action: 'reopen', label: 'Reopen', color: 'bg-emerald-600 hover:bg-emerald-500' },
+    { action: 'reopen', label: 'Reopen', variant: 'default' },
   ],
 }
 
@@ -73,58 +76,77 @@ function IssueDetailPage() {
     },
   })
 
-  if (isLoading) return <div className="text-zinc-500 py-12 text-center">Loading...</div>
+  if (isLoading) return <div className="text-muted-foreground py-12 text-center">Loading...</div>
   if (error || !data)
     return (
-      <div className="text-red-400 py-12 text-center">
+      <div className="text-destructive py-12 text-center">
         Failed to load issue: {error instanceof Error ? error.message : 'Not found'}
       </div>
     )
 
   const { issue, logs, comments, dependencies, blocked_by } = data
   const transitions = transitionMap[issue.status] ?? []
+  const status = statuses.find((s) => s.value === issue.status)
+  const issueType = types.find((t) => t.value === issue.type)
+  const priority = priorities.find((p) => p.value === issue.priority)
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Back link */}
-      <Link to="/" className="text-sm text-zinc-500 hover:text-white transition-colors mb-4 inline-block">
-        ← Back to board
+      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 inline-block">
+        ← Back to issues
       </Link>
 
       {/* Issue header */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-4">
+      <div className="rounded-lg border bg-card p-6 mb-4">
         <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="flex items-center gap-2">
-            <TypeIcon type={issue.type} />
-            <span className="text-xs font-mono text-zinc-500">{issue.id}</span>
-            <StatusBadge status={issue.status} />
-            <PriorityBadge priority={issue.priority} />
+          <div className="flex items-center gap-2 flex-wrap">
+            {issueType && (
+              <Badge variant="outline" className="gap-1">
+                <issueType.icon className="size-3" />
+                {issueType.label}
+              </Badge>
+            )}
+            <span className="text-xs font-mono text-muted-foreground">{issue.id}</span>
+            {status && (
+              <Badge variant="secondary" className="gap-1">
+                <status.icon className="size-3" />
+                {status.label}
+              </Badge>
+            )}
+            {priority && (
+              <Badge variant="secondary" className="gap-1">
+                <priority.icon className="size-3" />
+                {priority.label}
+              </Badge>
+            )}
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive"
             onClick={() => {
               if (confirm('Delete this issue?')) deleteMut.mutate()
             }}
-            className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
           >
             Delete
-          </button>
+          </Button>
         </div>
         <h1 className="text-xl font-bold mb-2">{issue.title}</h1>
         {issue.description && (
-          <p className="text-sm text-zinc-400 whitespace-pre-wrap">{issue.description}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{issue.description}</p>
         )}
 
         {/* Meta */}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-xs text-zinc-500">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
           {issue.points && <span>{issue.points} pts</span>}
           {issue.sprint && <span>Sprint: {issue.sprint}</span>}
           {issue.due_date && <span>Due: {issue.due_date}</span>}
           {issue.labels?.length > 0 && (
-            <span>
+            <span className="flex gap-1">
               {issue.labels.map((l) => (
-                <span key={l} className="bg-zinc-800 px-1.5 py-0.5 rounded mr-1">
+                <Badge key={l} variant="outline" className="text-xs">
                   {l}
-                </span>
+                </Badge>
               ))}
             </span>
           )}
@@ -133,41 +155,45 @@ function IssueDetailPage() {
 
         {/* Transitions */}
         {transitions.length > 0 && (
-          <div className="flex gap-2 mt-4 pt-4 border-t border-zinc-800">
-            {transitions.map((t) => (
-              <button
-                key={t.action}
-                onClick={() => transitionMut.mutate({ action: t.action })}
-                disabled={transitionMut.isPending}
-                className={`${t.color} text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50`}
-              >
-                {t.label}
-              </button>
-            ))}
-            {transitionMut.error && (
-              <span className="text-xs text-red-400 self-center">
-                {transitionMut.error instanceof Error ? transitionMut.error.message : 'Failed'}
-              </span>
-            )}
-          </div>
+          <>
+            <Separator className="my-4" />
+            <div className="flex gap-2 flex-wrap">
+              {transitions.map((t) => (
+                <Button
+                  key={t.action}
+                  variant={t.variant}
+                  size="sm"
+                  onClick={() => transitionMut.mutate({ action: t.action })}
+                  disabled={transitionMut.isPending}
+                >
+                  {t.label}
+                </Button>
+              ))}
+              {transitionMut.error && (
+                <span className="text-xs text-destructive self-center">
+                  {transitionMut.error instanceof Error ? transitionMut.error.message : 'Failed'}
+                </span>
+              )}
+            </div>
+          </>
         )}
       </div>
 
       {/* Dependencies */}
       {(dependencies.length > 0 || blocked_by.length > 0) && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
-          <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+        <div className="rounded-lg border bg-card p-4 mb-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Dependencies
           </h3>
           {dependencies.length > 0 && (
             <div className="mb-2">
-              <span className="text-xs text-zinc-500">Depends on: </span>
+              <span className="text-xs text-muted-foreground">Depends on: </span>
               {dependencies.map((d) => (
                 <Link
                   key={d.dep_id}
                   to="/issues/$id"
                   params={{ id: d.depends_on_id }}
-                  className="text-xs text-blue-400 hover:underline mr-2"
+                  className="text-xs text-primary hover:underline mr-2"
                 >
                   {d.depends_on_id}
                 </Link>
@@ -176,13 +202,13 @@ function IssueDetailPage() {
           )}
           {blocked_by.length > 0 && (
             <div>
-              <span className="text-xs text-zinc-500">Blocks: </span>
+              <span className="text-xs text-muted-foreground">Blocks: </span>
               {blocked_by.map((d) => (
                 <Link
                   key={d.dep_id}
                   to="/issues/$id"
                   params={{ id: d.issue_id }}
-                  className="text-xs text-blue-400 hover:underline mr-2"
+                  className="text-xs text-primary hover:underline mr-2"
                 >
                   {d.issue_id}
                 </Link>
@@ -194,20 +220,20 @@ function IssueDetailPage() {
 
       {/* Activity log */}
       {logs.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
-          <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+        <div className="rounded-lg border bg-card p-4 mb-4">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             Activity
           </h3>
           <div className="space-y-2">
             {logs.map((log) => (
               <div key={log.id} className="flex items-start gap-2 text-xs">
-                <span className="text-zinc-600 shrink-0">
+                <span className="text-muted-foreground shrink-0">
                   {new Date(log.created_at).toLocaleString()}
                 </span>
-                <span className="text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
+                <Badge variant="outline" className="text-xs">
                   {log.entry_type}
-                </span>
-                <span className="text-zinc-300">{log.summary}</span>
+                </Badge>
+                <span>{log.summary}</span>
               </div>
             ))}
           </div>
@@ -215,42 +241,41 @@ function IssueDetailPage() {
       )}
 
       {/* Comments */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Comments {comments.length > 0 && `(${comments.length})`}
         </h3>
         {comments.length > 0 && (
           <div className="space-y-3 mb-4">
             {comments.map((c) => (
-              <div key={c.id} className="bg-zinc-800/60 rounded-lg p-3">
+              <div key={c.id} className="bg-muted rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-zinc-500">
+                  <span className="text-[10px] text-muted-foreground">
                     {new Date(c.created_at).toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-300 whitespace-pre-wrap">{c.text}</p>
+                <p className="text-sm whitespace-pre-wrap">{c.text}</p>
               </div>
             ))}
           </div>
         )}
         <div className="flex gap-2">
-          <input
-            type="text"
+          <Input
             placeholder="Add a comment..."
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && commentText.trim()) commentMut.mutate()
             }}
-            className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="flex-1"
           />
-          <button
+          <Button
             onClick={() => commentMut.mutate()}
             disabled={!commentText.trim() || commentMut.isPending}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+            size="sm"
           >
             Send
-          </button>
+          </Button>
         </div>
       </div>
     </div>

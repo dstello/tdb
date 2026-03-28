@@ -32,10 +32,6 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: appCss,
       },
-      {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-      },
     ],
   }),
   component: RootComponent,
@@ -46,21 +42,21 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <RootDocument>
         <SSEProvider />
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
-          <nav className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-6">
-              <Link to="/" className="font-bold text-lg tracking-tight text-white">
+        <div className="min-h-screen bg-background text-foreground">
+          <nav className="border-b bg-background/80 backdrop-blur sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 h-14 flex items-center gap-6">
+              <Link to="/" className="font-bold text-lg tracking-tight">
                 td
               </Link>
               <Link
                 to="/"
-                className="text-sm text-zinc-400 hover:text-white transition-colors [&.active]:text-white"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
               >
-                Board
+                Issues
               </Link>
             </div>
           </nav>
-          <main className="max-w-7xl mx-auto px-4 py-6">
+          <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
             <Outlet />
           </main>
         </div>
@@ -80,7 +76,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-zinc-950 font-[Inter,system-ui,sans-serif]">
+      <body className="bg-background font-sans">
         {children}
         <Scripts />
       </body>

@@ -1,14 +1,26 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createIssue, type CreateIssueInput } from '~/lib/api'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Textarea } from '~/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 
-export function CreateIssueDialog({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) {
+export function CreateIssueDialog({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<CreateIssueInput>({
     title: '',
@@ -26,92 +38,95 @@ export function CreateIssueDialog({
     },
   })
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
-        <h2 className="text-lg font-semibold mb-4">Create Issue</h2>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Create Issue</DialogTitle>
+          <DialogDescription>
+            Add a new issue to your tracker.
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Title *</label>
-            <input
-              type="text"
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Title</label>
+            <Input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
               placeholder="Issue title..."
               autoFocus
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Type</label>
-              <select
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type</label>
+              <Select
                 value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                onValueChange={(value) => setForm({ ...form, type: value })}
               >
-                <option value="task">📋 Task</option>
-                <option value="bug">🐛 Bug</option>
-                <option value="feature">✨ Feature</option>
-                <option value="epic">🏔️ Epic</option>
-                <option value="chore">🔧 Chore</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="task">Task</SelectItem>
+                  <SelectItem value="bug">Bug</SelectItem>
+                  <SelectItem value="feature">Feature</SelectItem>
+                  <SelectItem value="epic">Epic</SelectItem>
+                  <SelectItem value="chore">Chore</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Priority</label>
-              <select
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Priority</label>
+              <Select
                 value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                onValueChange={(value) => setForm({ ...form, priority: value })}
               >
-                <option value="P0">P0 — Critical</option>
-                <option value="P1">P1 — High</option>
-                <option value="P2">P2 — Medium</option>
-                <option value="P3">P3 — Low</option>
-                <option value="P4">P4 — Minimal</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="P0">P0 — Critical</SelectItem>
+                  <SelectItem value="P1">P1 — High</SelectItem>
+                  <SelectItem value="P2">P2 — Medium</SelectItem>
+                  <SelectItem value="P3">P3 — Low</SelectItem>
+                  <SelectItem value="P4">P4 — Minimal</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Description</label>
-            <textarea
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description</label>
+            <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={4}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
               placeholder="Optional description..."
             />
           </div>
 
           {mutation.error && (
-            <p className="text-sm text-red-400">
+            <p className="text-sm text-destructive">
               {mutation.error instanceof Error ? mutation.error.message : 'Failed to create issue'}
             </p>
           )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => mutation.mutate(form)}
-              disabled={!form.title.trim() || mutation.isPending}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              {mutation.isPending ? 'Creating...' : 'Create'}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => mutation.mutate(form)}
+            disabled={!form.title.trim() || mutation.isPending}
+          >
+            {mutation.isPending ? 'Creating...' : 'Create'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
