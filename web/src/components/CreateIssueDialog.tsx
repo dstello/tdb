@@ -40,8 +40,9 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
   })
 
   return (
-    <Drawer open onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent>
+    <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="sm:max-w-md"
+      >
         <div className="mx-auto w-full max-w-lg">
           <DrawerHeader>
             <DrawerTitle>Create Issue</DrawerTitle>
