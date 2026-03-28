@@ -23,13 +23,20 @@ A task-list-style issue tracker front end built with React, TanStack Router, Tan
 
 ### Install & Run
 
+**Terminal 1 — Start the backend:**
+
 ```
-cd web
+td serve --port 54321 --cors http://localhost:5173
+```
+
+**Terminal 2 — Start the frontend:**
+
+```
 npm install
 npm run dev
 ```
 
-The dev server starts at **http://localhost:5173**.
+The backend API runs at **http://localhost:54321** and the dev server starts at **http://localhost:5173**.
 
 ### Environment Variables
 
@@ -55,7 +62,6 @@ The production server runs from `.output/server/index.mjs`.
 ## Project Structure
 
 ```
-web/
 ├── src/
 │   ├── components/
 │   │   ├── tasks/
@@ -110,11 +116,11 @@ Clicking any issue card navigates to its detail page, which includes:
 - **Header** — Type icon, ID, status badge, priority badge, and a delete action
 - **Metadata** — Points, sprint, due date, labels, and creation date
 - **Status Transitions** — Context-aware action buttons based on current status:
-    - Open → Start, Submit for Review, Block, Close
-    - In Progress → Submit for Review, Block, Close
-    - In Review → Approve, Reject, Close
-    - Blocked → Unblock, Close
-    - Closed → Reopen
+  - Open → Start, Submit for Review, Block, Close
+  - In Progress → Submit for Review, Block, Close
+  - In Review → Approve, Reject, Close
+  - Blocked → Unblock, Close
+  - Closed → Reopen
 - **Dependencies** — Links to issues this one depends on or blocks
 - **Activity Log** — Timestamped history of status changes and events
 - **Comments** — Threaded comments with inline compose (Enter to send)
