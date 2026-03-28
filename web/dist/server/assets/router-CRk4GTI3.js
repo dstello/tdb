@@ -34,7 +34,7 @@ function useSSE() {
 }
 //#endregion
 //#region src/styles.css?url
-var styles_default = "/assets/styles-BmKT1rD0.css";
+var styles_default = "/assets/styles-BW1zYqtB.css";
 //#endregion
 //#region src/routes/__root.tsx
 var queryClient = new QueryClient({ defaultOptions: { queries: {
@@ -100,7 +100,7 @@ function RootDocument({ children }) {
 }
 //#endregion
 //#region src/routes/index.tsx
-var $$splitComponentImporter = () => import("./routes-CA3DrDgk.js");
+var $$splitComponentImporter = () => import("./routes-BzgnnqsV.js");
 //#endregion
 //#region src/routeTree.gen.ts
 var rootRouteChildren = {

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMonitor, fetchStats, type Issue } from '~/lib/api'
-import { columns } from '~/components/tasks/columns'
+import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
+import { IssueQuickView } from '~/components/IssueQuickView'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -30,6 +32,8 @@ function collectIssues(data: ReturnType<typeof useQuery<Awaited<ReturnType<typeo
 }
 
 function Dashboard() {
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
+
   const monitor = useQuery({
     queryKey: ['monitor', true],
     queryFn: () => fetchMonitor({ include_closed: true }),
@@ -43,6 +47,10 @@ function Dashboard() {
   })
 
   const issues = collectIssues(monitor.data)
+
+  const tableMeta: IssueTableMeta = {
+    onIssueClick: (issueId) => setSelectedIssueId(issueId),
+  }
 
   return (
     <div className="flex h-full flex-1 flex-col gap-8">
@@ -65,7 +73,14 @@ function Dashboard() {
         </div>
       )}
 
-      <DataTable data={issues} columns={columns} />
+      <DataTable data={issues} columns={columns} meta={tableMeta} />
+
+      {selectedIssueId && (
+        <IssueQuickView
+          issueId={selectedIssueId}
+          onClose={() => setSelectedIssueId(null)}
+        />
+      )}
     </div>
   )
 }

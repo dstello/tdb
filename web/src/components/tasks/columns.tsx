@@ -1,5 +1,4 @@
 import { type ColumnDef } from "@tanstack/react-table"
-import { Link } from "@tanstack/react-router"
 
 import { Badge } from "~/components/ui/badge"
 import { Checkbox } from "~/components/ui/checkbox"
@@ -8,6 +7,10 @@ import { types, statuses, priorities } from "./data"
 import { type Issue } from "~/lib/api"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
+
+export interface IssueTableMeta {
+  onIssueClick?: (issueId: string) => void
+}
 
 export const columns: ColumnDef<Issue>[] = [
   {
@@ -39,15 +42,17 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Issue" />
     ),
-    cell: ({ row }) => (
-      <Link
-        to="/issues/$id"
-        params={{ id: row.getValue("id") }}
-        className="w-[80px] truncate font-mono text-xs hover:underline"
-      >
-        {(row.getValue("id") as string).slice(0, 8)}
-      </Link>
-    ),
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as IssueTableMeta | undefined
+      return (
+        <button
+          onClick={() => meta?.onIssueClick?.(row.getValue("id"))}
+          className="w-[80px] truncate font-mono text-xs hover:underline text-left"
+        >
+          {(row.getValue("id") as string).slice(0, 8)}
+        </button>
+      )
+    },
     enableSorting: false,
     enableHiding: false,
   },
@@ -56,19 +61,19 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const issueType = types.find((t) => t.value === row.original.type)
+      const meta = table.options.meta as IssueTableMeta | undefined
 
       return (
         <div className="flex gap-2">
           {issueType && <Badge variant="outline">{issueType.label}</Badge>}
-          <Link
-            to="/issues/$id"
-            params={{ id: row.original.id }}
-            className="max-w-[500px] truncate font-medium hover:underline"
+          <button
+            onClick={() => meta?.onIssueClick?.(row.original.id)}
+            className="max-w-[500px] truncate font-medium hover:underline text-left"
           >
             {row.getValue("title")}
-          </Link>
+          </button>
         </div>
       )
     },

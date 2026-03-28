@@ -7,13 +7,13 @@ import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cva } from "class-variance-authority";
 import { Checkbox } from "@base-ui/react/checkbox";
-import { ArrowDown, ArrowUp, Check, CheckIcon, ChevronDownIcon, ChevronLeft, ChevronRight, ChevronRightIcon, ChevronUpIcon, ChevronsLeft, ChevronsRight, ChevronsUpDown, EyeOff, MoreHorizontal, Plus, PlusCircle, SearchIcon, Settings2, X, XIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, CheckIcon, ChevronDownIcon, ChevronLeft, ChevronRight, ChevronRightIcon, ChevronUpIcon, ChevronsLeft, ChevronsRight, ChevronsUpDown, EyeOff, MoreHorizontal, Plus, PlusCircle, SearchIcon, Settings2, X } from "lucide-react";
 import { Menu } from "@base-ui/react/menu";
 import { flexRender, getCoreRowModel, getFacetedRowModel, getFacetedUniqueValues, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { Select } from "@base-ui/react/select";
 import { Command } from "cmdk";
-import { Dialog } from "@base-ui/react/dialog";
 import { Popover } from "@base-ui/react/popover";
+import { Drawer } from "vaul";
 //#region src/components/ui/checkbox.tsx
 function Checkbox$1({ className, ...props }) {
 	return /* @__PURE__ */ jsx(Checkbox.Root, {
@@ -637,78 +637,6 @@ function DataTableViewOptions({ table }) {
 	})] });
 }
 //#endregion
-//#region src/components/ui/dialog.tsx
-function Dialog$1({ ...props }) {
-	return /* @__PURE__ */ jsx(Dialog.Root, {
-		"data-slot": "dialog",
-		...props
-	});
-}
-function DialogPortal({ ...props }) {
-	return /* @__PURE__ */ jsx(Dialog.Portal, {
-		"data-slot": "dialog-portal",
-		...props
-	});
-}
-function DialogOverlay({ className, ...props }) {
-	return /* @__PURE__ */ jsx(Dialog.Backdrop, {
-		"data-slot": "dialog-overlay",
-		className: cn("fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0", className),
-		...props
-	});
-}
-function DialogContent({ className, children, showCloseButton = true, ...props }) {
-	return /* @__PURE__ */ jsxs(DialogPortal, { children: [/* @__PURE__ */ jsx(DialogOverlay, {}), /* @__PURE__ */ jsxs(Dialog.Popup, {
-		"data-slot": "dialog-content",
-		className: cn("fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className),
-		...props,
-		children: [children, showCloseButton && /* @__PURE__ */ jsxs(Dialog.Close, {
-			"data-slot": "dialog-close",
-			render: /* @__PURE__ */ jsx(Button, {
-				variant: "ghost",
-				className: "absolute top-2 right-2",
-				size: "icon-sm"
-			}),
-			children: [/* @__PURE__ */ jsx(XIcon, {}), /* @__PURE__ */ jsx("span", {
-				className: "sr-only",
-				children: "Close"
-			})]
-		})]
-	})] });
-}
-function DialogHeader({ className, ...props }) {
-	return /* @__PURE__ */ jsx("div", {
-		"data-slot": "dialog-header",
-		className: cn("flex flex-col gap-2", className),
-		...props
-	});
-}
-function DialogFooter({ className, showCloseButton = false, children, ...props }) {
-	return /* @__PURE__ */ jsxs("div", {
-		"data-slot": "dialog-footer",
-		className: cn("-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end", className),
-		...props,
-		children: [children, showCloseButton && /* @__PURE__ */ jsx(Dialog.Close, {
-			render: /* @__PURE__ */ jsx(Button, { variant: "outline" }),
-			children: "Close"
-		})]
-	});
-}
-function DialogTitle({ className, ...props }) {
-	return /* @__PURE__ */ jsx(Dialog.Title, {
-		"data-slot": "dialog-title",
-		className: cn("font-heading text-base leading-none font-medium", className),
-		...props
-	});
-}
-function DialogDescription({ className, ...props }) {
-	return /* @__PURE__ */ jsx(Dialog.Description, {
-		"data-slot": "dialog-description",
-		className: cn("text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground", className),
-		...props
-	});
-}
-//#endregion
 //#region src/components/ui/textarea.tsx
 function Textarea({ className, ...props }) {
 	return /* @__PURE__ */ jsx("textarea", {
@@ -921,8 +849,74 @@ function DataTableFacetedFilter({ column, title, options }) {
 	})] });
 }
 //#endregion
+//#region src/components/ui/drawer.tsx
+function Drawer$1({ ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Root, {
+		"data-slot": "drawer",
+		...props
+	});
+}
+function DrawerPortal({ ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Portal, {
+		"data-slot": "drawer-portal",
+		...props
+	});
+}
+function DrawerClose({ ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Close, {
+		"data-slot": "drawer-close",
+		...props
+	});
+}
+function DrawerOverlay({ className, ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Overlay, {
+		"data-slot": "drawer-overlay",
+		className: cn("fixed inset-0 z-50 bg-black/10 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0", className),
+		...props
+	});
+}
+function DrawerContent({ className, children, ...props }) {
+	return /* @__PURE__ */ jsxs(DrawerPortal, {
+		"data-slot": "drawer-portal",
+		children: [/* @__PURE__ */ jsx(DrawerOverlay, {}), /* @__PURE__ */ jsxs(Drawer.Content, {
+			"data-slot": "drawer-content",
+			className: cn("group/drawer-content fixed z-50 flex h-auto flex-col bg-popover text-sm text-popover-foreground data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-xl data-[vaul-drawer-direction=bottom]:border-t data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=left]:rounded-r-xl data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:rounded-l-xl data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-xl data-[vaul-drawer-direction=top]:border-b data-[vaul-drawer-direction=left]:sm:max-w-sm data-[vaul-drawer-direction=right]:sm:max-w-sm", className),
+			...props,
+			children: [/* @__PURE__ */ jsx("div", { className: "mx-auto mt-4 hidden h-1 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" }), children]
+		})]
+	});
+}
+function DrawerHeader({ className, ...props }) {
+	return /* @__PURE__ */ jsx("div", {
+		"data-slot": "drawer-header",
+		className: cn("flex flex-col gap-0.5 p-4 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center group-data-[vaul-drawer-direction=top]/drawer-content:text-center md:gap-0.5 md:text-left", className),
+		...props
+	});
+}
+function DrawerFooter({ className, ...props }) {
+	return /* @__PURE__ */ jsx("div", {
+		"data-slot": "drawer-footer",
+		className: cn("mt-auto flex flex-col gap-2 p-4", className),
+		...props
+	});
+}
+function DrawerTitle({ className, ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Title, {
+		"data-slot": "drawer-title",
+		className: cn("font-heading text-base font-medium text-foreground", className),
+		...props
+	});
+}
+function DrawerDescription({ className, ...props }) {
+	return /* @__PURE__ */ jsx(Drawer.Description, {
+		"data-slot": "drawer-description",
+		className: cn("text-sm text-muted-foreground", className),
+		...props
+	});
+}
+//#endregion
 //#region src/components/CreateIssueDialog.tsx
-function CreateIssueDialog({ onClose }) {
+function CreateIssueDrawer({ onClose }) {
 	const queryClient = useQueryClient();
 	const [form, setForm] = useState({
 		title: "",
@@ -943,134 +937,141 @@ function CreateIssueDialog({ onClose }) {
 			onClose();
 		}
 	});
-	return /* @__PURE__ */ jsx(Dialog$1, {
+	return /* @__PURE__ */ jsx(Drawer$1, {
 		open: true,
+		direction: "right",
+		modal: false,
 		onOpenChange: (open) => !open && onClose(),
-		children: /* @__PURE__ */ jsxs(DialogContent, {
-			className: "sm:max-w-lg",
-			children: [
-				/* @__PURE__ */ jsxs(DialogHeader, { children: [/* @__PURE__ */ jsx(DialogTitle, { children: "Create Issue" }), /* @__PURE__ */ jsx(DialogDescription, { children: "Add a new issue to your tracker." })] }),
-				/* @__PURE__ */ jsxs("div", {
-					className: "space-y-4 py-2",
-					children: [
-						/* @__PURE__ */ jsxs("div", {
-							className: "space-y-2",
-							children: [/* @__PURE__ */ jsx("label", {
-								className: "text-sm font-medium",
-								children: "Title"
-							}), /* @__PURE__ */ jsx(Input, {
-								value: form.title,
-								onChange: (e) => setForm({
-									...form,
-									title: e.target.value
-								}),
-								placeholder: "Issue title...",
-								autoFocus: true
-							})]
-						}),
-						/* @__PURE__ */ jsxs("div", {
-							className: "grid grid-cols-2 gap-3",
-							children: [/* @__PURE__ */ jsxs("div", {
+		children: /* @__PURE__ */ jsx(DrawerContent, {
+			className: "sm:max-w-md",
+			children: /* @__PURE__ */ jsxs("div", {
+				className: "mx-auto w-full max-w-lg",
+				children: [
+					/* @__PURE__ */ jsxs(DrawerHeader, { children: [/* @__PURE__ */ jsx(DrawerTitle, { children: "Create Issue" }), /* @__PURE__ */ jsx(DrawerDescription, { children: "Add a new issue to your tracker." })] }),
+					/* @__PURE__ */ jsxs("div", {
+						className: "space-y-4 px-4 pb-2",
+						children: [
+							/* @__PURE__ */ jsxs("div", {
 								className: "space-y-2",
 								children: [/* @__PURE__ */ jsx("label", {
 									className: "text-sm font-medium",
-									children: "Type"
-								}), /* @__PURE__ */ jsxs(Select$1, {
-									value: form.type,
-									onValueChange: (value) => setForm({
+									children: "Title"
+								}), /* @__PURE__ */ jsx(Input, {
+									value: form.title,
+									onChange: (e) => setForm({
 										...form,
-										type: value
+										title: e.target.value
 									}),
-									children: [/* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, {}) }), /* @__PURE__ */ jsxs(SelectContent, { children: [
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "task",
-											children: "Task"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "bug",
-											children: "Bug"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "feature",
-											children: "Feature"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "epic",
-											children: "Epic"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "chore",
-											children: "Chore"
-										})
-									] })]
+									placeholder: "Issue title...",
+									autoFocus: true
 								})]
-							}), /* @__PURE__ */ jsxs("div", {
+							}),
+							/* @__PURE__ */ jsxs("div", {
+								className: "grid grid-cols-2 gap-3",
+								children: [/* @__PURE__ */ jsxs("div", {
+									className: "space-y-2",
+									children: [/* @__PURE__ */ jsx("label", {
+										className: "text-sm font-medium",
+										children: "Type"
+									}), /* @__PURE__ */ jsxs(Select$1, {
+										value: form.type,
+										onValueChange: (value) => setForm({
+											...form,
+											type: value
+										}),
+										children: [/* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, {}) }), /* @__PURE__ */ jsxs(SelectContent, { children: [
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "task",
+												children: "Task"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "bug",
+												children: "Bug"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "feature",
+												children: "Feature"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "epic",
+												children: "Epic"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "chore",
+												children: "Chore"
+											})
+										] })]
+									})]
+								}), /* @__PURE__ */ jsxs("div", {
+									className: "space-y-2",
+									children: [/* @__PURE__ */ jsx("label", {
+										className: "text-sm font-medium",
+										children: "Priority"
+									}), /* @__PURE__ */ jsxs(Select$1, {
+										value: form.priority,
+										onValueChange: (value) => setForm({
+											...form,
+											priority: value
+										}),
+										children: [/* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, {}) }), /* @__PURE__ */ jsxs(SelectContent, { children: [
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "P0",
+												children: "P0 — Critical"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "P1",
+												children: "P1 — High"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "P2",
+												children: "P2 — Medium"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "P3",
+												children: "P3 — Low"
+											}),
+											/* @__PURE__ */ jsx(SelectItem, {
+												value: "P4",
+												children: "P4 — Minimal"
+											})
+										] })]
+									})]
+								})]
+							}),
+							/* @__PURE__ */ jsxs("div", {
 								className: "space-y-2",
 								children: [/* @__PURE__ */ jsx("label", {
 									className: "text-sm font-medium",
-									children: "Priority"
-								}), /* @__PURE__ */ jsxs(Select$1, {
-									value: form.priority,
-									onValueChange: (value) => setForm({
+									children: "Description"
+								}), /* @__PURE__ */ jsx(Textarea, {
+									value: form.description,
+									onChange: (e) => setForm({
 										...form,
-										priority: value
+										description: e.target.value
 									}),
-									children: [/* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, {}) }), /* @__PURE__ */ jsxs(SelectContent, { children: [
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "P0",
-											children: "P0 — Critical"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "P1",
-											children: "P1 — High"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "P2",
-											children: "P2 — Medium"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "P3",
-											children: "P3 — Low"
-										}),
-										/* @__PURE__ */ jsx(SelectItem, {
-											value: "P4",
-											children: "P4 — Minimal"
-										})
-									] })]
+									rows: 4,
+									placeholder: "Optional description..."
 								})]
-							})]
-						}),
-						/* @__PURE__ */ jsxs("div", {
-							className: "space-y-2",
-							children: [/* @__PURE__ */ jsx("label", {
-								className: "text-sm font-medium",
-								children: "Description"
-							}), /* @__PURE__ */ jsx(Textarea, {
-								value: form.description,
-								onChange: (e) => setForm({
-									...form,
-									description: e.target.value
-								}),
-								rows: 4,
-								placeholder: "Optional description..."
-							})]
-						}),
-						mutation.error && /* @__PURE__ */ jsx("p", {
-							className: "text-sm text-destructive",
-							children: mutation.error instanceof Error ? mutation.error.message : "Failed to create issue"
+							}),
+							mutation.error && /* @__PURE__ */ jsx("p", {
+								className: "text-sm text-destructive",
+								children: mutation.error instanceof Error ? mutation.error.message : "Failed to create issue"
+							})
+						]
+					}),
+					/* @__PURE__ */ jsxs(DrawerFooter, { children: [/* @__PURE__ */ jsx(Button, {
+						onClick: () => mutation.mutate(form),
+						disabled: !form.title.trim() || mutation.isPending,
+						children: mutation.isPending ? "Creating..." : "Create"
+					}), /* @__PURE__ */ jsx(DrawerClose, {
+						asChild: true,
+						children: /* @__PURE__ */ jsx(Button, {
+							variant: "outline",
+							children: "Cancel"
 						})
-					]
-				}),
-				/* @__PURE__ */ jsxs(DialogFooter, { children: [/* @__PURE__ */ jsx(Button, {
-					variant: "outline",
-					onClick: onClose,
-					children: "Cancel"
-				}), /* @__PURE__ */ jsx(Button, {
-					onClick: () => mutation.mutate(form),
-					disabled: !form.title.trim() || mutation.isPending,
-					children: mutation.isPending ? "Creating..." : "Create"
-				})] })
-			]
+					})] })
+				]
+			})
 		})
 	});
 }
@@ -1120,7 +1121,7 @@ function DataTableToolbar({ table }) {
 				children: [/* @__PURE__ */ jsx(Plus, {}), "New Issue"]
 			})]
 		})]
-	}), showCreate && /* @__PURE__ */ jsx(CreateIssueDialog, { onClose: () => setShowCreate(false) })] });
+	}), showCreate && /* @__PURE__ */ jsx(CreateIssueDrawer, { onClose: () => setShowCreate(false) })] });
 }
 //#endregion
 //#region src/components/tasks/data-table.tsx
