@@ -1,5 +1,11 @@
 # Agents
 
+## Task Management
+
+- At the start of each session, run `td list --status open` to check for the next task.
+- Present the available tasks to the user and confirm which one to work on before starting.
+- When a task is complete, update it in td (e.g., `td close <id>`) after confirming with the user.
+
 ## Git Workflow
 
 - Always make logical, atomic commits with concise messages.

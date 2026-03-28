@@ -32,8 +32,9 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
   const mutation = useMutation({
     mutationFn: createIssue,
-    onSuccess: () => {
-      queryClient.invalidateQueries()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
       setForm({ title: '', type: 'task', priority: 'P2', description: '' })
       onClose()
     },
