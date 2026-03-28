@@ -1,6 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table"
 
-import { Badge } from "~/components/ui/badge"
 import { Checkbox } from "~/components/ui/checkbox"
 
 import { types, statuses, priorities } from "./data"
@@ -47,7 +46,7 @@ export const columns: ColumnDef<Issue>[] = [
       return (
         <button
           onClick={() => meta?.onIssueClick?.(row.getValue("id"))}
-          className="w-[80px] truncate font-mono text-xs hover:underline text-left"
+          className="font-mono text-[11px] text-muted-foreground hover:text-primary transition-colors text-left"
         >
           {(row.getValue("id") as string).slice(0, 8)}
         </button>
@@ -66,11 +65,15 @@ export const columns: ColumnDef<Issue>[] = [
       const meta = table.options.meta as IssueTableMeta | undefined
 
       return (
-        <div className="flex gap-2">
-          {issueType && <Badge variant="outline">{issueType.label}</Badge>}
+        <div className="flex items-center gap-2.5">
+          {issueType && (
+            <span className="text-muted-foreground shrink-0" title={issueType.label}>
+              <issueType.icon className="size-3.5" />
+            </span>
+          )}
           <button
             onClick={() => meta?.onIssueClick?.(row.original.id)}
-            className="max-w-[500px] truncate font-medium hover:underline text-left"
+            className="max-w-[500px] truncate text-[13px] hover:text-primary transition-colors text-left"
           >
             {row.getValue("title")}
           </button>
@@ -93,12 +96,10 @@ export const columns: ColumnDef<Issue>[] = [
       }
 
       return (
-        <div className="flex w-[120px] items-center gap-2">
-          {status.icon && (
-            <status.icon className="size-4 text-muted-foreground" />
-          )}
-          <span>{status.label}</span>
-        </div>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+          <status.icon className="size-3" />
+          {status.label}
+        </span>
       )
     },
     filterFn: (row, id, value) => {
@@ -120,12 +121,9 @@ export const columns: ColumnDef<Issue>[] = [
       }
 
       return (
-        <div className="flex w-[100px] items-center gap-2">
-          {issueType.icon && (
-            <issueType.icon className="size-4 text-muted-foreground" />
-          )}
-          <span>{issueType.label}</span>
-        </div>
+        <span className="text-[13px] text-muted-foreground">
+          {issueType.label}
+        </span>
       )
     },
     filterFn: (row, id, value) => {
@@ -147,12 +145,10 @@ export const columns: ColumnDef<Issue>[] = [
       }
 
       return (
-        <div className="flex items-center gap-2">
-          {priority.icon && (
-            <priority.icon className="size-4 text-muted-foreground" />
-          )}
-          <span>{priority.label}</span>
-        </div>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${priority.className}`}>
+          <priority.icon className="size-3" />
+          {priority.label}
+        </span>
       )
     },
     filterFn: (row, id, value) => {

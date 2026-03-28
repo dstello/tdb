@@ -41,19 +41,19 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="sm:max-w-md"
+      <DrawerContent className="sm:max-w-md border-l border-border/60"
       >
         <div className="mx-auto w-full max-w-lg">
-          <DrawerHeader>
-            <DrawerTitle>Create Issue</DrawerTitle>
-            <DrawerDescription>
+          <DrawerHeader className="pb-3">
+            <DrawerTitle className="text-[15px] font-medium">Create Issue</DrawerTitle>
+            <DrawerDescription className="text-[13px]">
               Add a new issue to your tracker.
             </DrawerDescription>
           </DrawerHeader>
 
           <div className="space-y-4 px-4 pb-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Title</label>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Title</label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -64,7 +64,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Type</label>
+                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
                 <Select
                   value={form.type}
                   onValueChange={(value) => setForm({ ...form, type: value })}
@@ -82,7 +82,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Priority</label>
+                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
                 <Select
                   value={form.priority}
                   onValueChange={(value) => setForm({ ...form, priority: value })}
@@ -102,7 +102,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Description</label>
               <Textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}

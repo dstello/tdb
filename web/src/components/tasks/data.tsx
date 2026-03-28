@@ -3,11 +3,11 @@ import {
   ArrowRight,
   ArrowUp,
   AlertTriangle,
-  CheckCircle,
+  CheckCircle2,
   Circle,
   Clock,
   Eye,
-  Ban,
+  ShieldAlert,
   Bug,
   Sparkles,
   ListChecks,
@@ -16,11 +16,11 @@ import {
 } from "lucide-react"
 
 export const statuses = [
-  { value: "open", label: "Ready", icon: Circle },
-  { value: "in_progress", label: "In Progress", icon: Clock },
-  { value: "in_review", label: "In Review", icon: Eye },
-  { value: "blocked", label: "Blocked", icon: Ban },
-  { value: "closed", label: "Closed", icon: CheckCircle },
+  { value: "open", label: "Ready", icon: Circle, className: "status-open" },
+  { value: "in_progress", label: "In Progress", icon: Clock, className: "status-in_progress" },
+  { value: "in_review", label: "In Review", icon: Eye, className: "status-in_review" },
+  { value: "blocked", label: "Blocked", icon: ShieldAlert, className: "status-blocked" },
+  { value: "closed", label: "Closed", icon: CheckCircle2, className: "status-closed" },
 ]
 
 export const types = [
@@ -32,9 +32,9 @@ export const types = [
 ]
 
 export const priorities = [
-  { value: "p0", label: "Critical", icon: AlertTriangle },
-  { value: "p1", label: "High", icon: ArrowUp },
-  { value: "p2", label: "Medium", icon: ArrowRight },
-  { value: "p3", label: "Low", icon: ArrowDown },
-  { value: "p4", label: "Minimal", icon: Circle },
+  { value: "p0", label: "Critical", icon: AlertTriangle, className: "priority-p0" },
+  { value: "p1", label: "High", icon: ArrowUp, className: "priority-p1" },
+  { value: "p2", label: "Medium", icon: ArrowRight, className: "priority-p2" },
+  { value: "p3", label: "Low", icon: ArrowDown, className: "priority-p3" },
+  { value: "p4", label: "Minimal", icon: Circle, className: "priority-p4" },
 ]

@@ -92,32 +92,32 @@ function IssueDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 inline-block">
+      <Link to="/" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors mb-6 inline-block">
         ← Back to issues
       </Link>
 
       {/* Issue header */}
-      <div className="rounded-lg border bg-card p-6 mb-4">
+      <div className="rounded-lg border border-border/60 bg-card p-6 mb-4">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             {issueType && (
-              <Badge variant="outline" className="gap-1">
-                <issueType.icon className="size-3" />
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <issueType.icon className="size-3.5" />
                 {issueType.label}
-              </Badge>
+              </span>
             )}
-            <span className="text-xs font-mono text-muted-foreground">{issue.id}</span>
+            <span className="text-[11px] font-mono text-muted-foreground/60">{issue.id}</span>
             {status && (
-              <Badge variant="secondary" className="gap-1">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${(status as any).className ?? ''}`}>
                 <status.icon className="size-3" />
                 {status.label}
-              </Badge>
+              </span>
             )}
             {priority && (
-              <Badge variant="secondary" className="gap-1">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${(priority as any).className ?? ''}`}>
                 <priority.icon className="size-3" />
                 {priority.label}
-              </Badge>
+              </span>
             )}
           </div>
           <Button
@@ -181,8 +181,8 @@ function IssueDetailPage() {
 
       {/* Dependencies */}
       {(dependencies.length > 0 || blocked_by.length > 0) && (
-        <div className="rounded-lg border bg-card p-4 mb-4">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        <div className="rounded-lg border border-border/60 bg-card p-4 mb-4">
+          <h3 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2">
             Dependencies
           </h3>
           {dependencies.length > 0 && (
@@ -220,8 +220,8 @@ function IssueDetailPage() {
 
       {/* Activity log */}
       {logs.length > 0 && (
-        <div className="rounded-lg border bg-card p-4 mb-4">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <div className="rounded-lg border border-border/60 bg-card p-4 mb-4">
+          <h3 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-3">
             Activity
           </h3>
           <div className="space-y-2">
@@ -241,8 +241,8 @@ function IssueDetailPage() {
       )}
 
       {/* Comments */}
-      <div className="rounded-lg border bg-card p-4">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+      <div className="rounded-lg border border-border/60 bg-card p-4">
+        <h3 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-3">
           Comments {comments.length > 0 && `(${comments.length})`}
         </h3>
         {comments.length > 0 && (

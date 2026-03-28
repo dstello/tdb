@@ -43,20 +43,21 @@ function RootComponent() {
       <RootDocument>
         <SSEProvider />
         <div className="min-h-screen bg-background text-foreground">
-          <nav className="border-b bg-background/80 backdrop-blur sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 h-14 flex items-center gap-6">
-              <Link to="/" className="font-bold text-lg tracking-tight">
+          <nav className="border-b bg-card/60 backdrop-blur-sm sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8 h-12 flex items-center gap-6">
+              <Link to="/" className="font-semibold text-sm tracking-wide text-primary font-mono">
                 td
               </Link>
+              <div className="h-4 w-px bg-border" />
               <Link
                 to="/"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
               >
                 Issues
               </Link>
             </div>
           </nav>
-          <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
+          <main className="max-w-7xl mx-auto px-6 sm:px-8 py-8">
             <Outlet />
           </main>
         </div>

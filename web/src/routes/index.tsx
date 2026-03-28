@@ -53,16 +53,14 @@ function Dashboard() {
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-8">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Issues</h2>
-          <p className="text-muted-foreground text-sm">
-            {stats.data
-              ? `${stats.data.total} issues · ${Math.round(stats.data.completion_rate * 100)}% complete${stats.data.created_today > 0 ? ` · +${stats.data.created_today} today` : ''}`
-              : 'Loading...'}
+    <div className="flex h-full flex-1 flex-col gap-6">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="text-lg font-medium tracking-tight">Issues</h2>
+        {stats.data && (
+          <p className="text-muted-foreground text-xs font-mono tabular-nums">
+            {stats.data.total} total · {Math.round(stats.data.completion_rate * 100)}% done{stats.data.created_today > 0 ? ` · +${stats.data.created_today} today` : ''}
           </p>
-        </div>
+        )}
       </div>
 
       {monitor.error && (

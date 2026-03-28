@@ -92,26 +92,26 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="sm:max-w-md overflow-y-auto">
-        <DrawerHeader className="flex flex-row items-start justify-between gap-2">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <DrawerTitle className="truncate">
+      <DrawerContent className="sm:max-w-md overflow-y-auto border-l border-border/60">
+        <DrawerHeader className="flex flex-row items-start justify-between gap-2 pb-3">
+          <div className="flex flex-col gap-1 min-w-0">
+            <DrawerTitle className="truncate text-[15px] font-medium">
               {isLoading ? 'Loading...' : issue?.title ?? 'Issue'}
             </DrawerTitle>
-            <DrawerDescription className="font-mono text-xs">
+            <DrawerDescription className="font-mono text-[11px]">
               {issueId.slice(0, 8)}
             </DrawerDescription>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button variant="ghost" size="icon" className="size-8" asChild>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground" asChild>
               <Link to="/issues/$id" params={{ id: issueId }}>
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-3.5" />
                 <span className="sr-only">Full page</span>
               </Link>
             </Button>
             <DrawerClose asChild>
-              <Button variant="ghost" size="icon" className="size-8">
-                <X className="size-4" />
+              <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground">
+                <X className="size-3.5" />
                 <span className="sr-only">Close</span>
               </Button>
             </DrawerClose>
@@ -133,22 +133,22 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap">
               {issueType && (
-                <Badge variant="outline" className="gap-1">
-                  <issueType.icon className="size-3" />
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <issueType.icon className="size-3.5" />
                   {issueType.label}
-                </Badge>
+                </span>
               )}
               {status && (
-                <Badge variant="secondary" className="gap-1">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
                   <status.icon className="size-3" />
                   {status.label}
-                </Badge>
+                </span>
               )}
               {priority && (
-                <Badge variant="secondary" className="gap-1">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${priority.className}`}>
                   <priority.icon className="size-3" />
                   {priority.label}
-                </Badge>
+                </span>
               )}
             </div>
 
@@ -198,7 +198,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-1">
                     Dependencies
                   </h4>
                   {data.dependencies.length > 0 && (
@@ -236,7 +236,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2">
                     Activity
                   </h4>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -259,7 +259,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {/* Comments */}
             <Separator />
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2">
                 Comments {data && data.comments.length > 0 && `(${data.comments.length})`}
               </h4>
               {data && data.comments.length > 0 && (
