@@ -25,6 +25,7 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
+import type { IssueTableMeta } from "./columns"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -98,22 +99,38 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-border/40 transition-colors"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2.5">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const meta = table.options.meta as IssueTableMeta | undefined
+                const rowData = row.original as { id?: string }
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="border-b border-border/40 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      // Don't trigger row click if clicking checkbox, button, or actions
+                      const target = e.target as HTMLElement
+                      if (
+                        target.closest('[role="checkbox"]') ||
+                        target.closest('button') ||
+                        target.closest('[data-no-row-click]')
+                      ) return
+                      if (rowData.id && meta?.onIssueClick) {
+                        meta.onIssueClick(rowData.id)
+                      }
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-2.5">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell

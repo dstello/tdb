@@ -41,15 +41,11 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Issue" />
     ),
-    cell: ({ row, table }) => {
-      const meta = table.options.meta as IssueTableMeta | undefined
+    cell: ({ row }) => {
       return (
-        <button
-          onClick={() => meta?.onIssueClick?.(row.getValue("id"))}
-          className="font-mono text-[11px] text-muted-foreground hover:text-primary transition-colors text-left"
-        >
+        <span className="font-mono text-[11px] text-muted-foreground">
           {(row.getValue("id") as string).slice(0, 8)}
-        </button>
+        </span>
       )
     },
     enableSorting: false,
@@ -60,9 +56,8 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const issueType = types.find((t) => t.value === row.original.type)
-      const meta = table.options.meta as IssueTableMeta | undefined
 
       return (
         <div className="flex items-center gap-2.5">
@@ -71,12 +66,9 @@ export const columns: ColumnDef<Issue>[] = [
               <issueType.icon className="size-3.5" />
             </span>
           )}
-          <button
-            onClick={() => meta?.onIssueClick?.(row.original.id)}
-            className="max-w-[500px] truncate text-[13px] hover:text-primary transition-colors text-left"
-          >
+          <span className="max-w-[500px] truncate text-[13px]">
             {row.getValue("title")}
-          </button>
+          </span>
         </div>
       )
     },

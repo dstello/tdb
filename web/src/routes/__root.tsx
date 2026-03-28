@@ -45,8 +45,8 @@ function RootComponent() {
         <div className="min-h-screen bg-background text-foreground">
           <nav className="border-b bg-card/60 backdrop-blur-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-6 sm:px-8 h-12 flex items-center gap-6">
-              <Link to="/" className="font-semibold text-sm tracking-wide text-primary font-mono">
-                td
+              <Link to="/" className="flex items-center gap-2">
+                <img src="/td-logo.png" alt="td" className="h-6" />
               </Link>
               <div className="h-4 w-px bg-border" />
               <Link
