@@ -1,7 +1,6 @@
 import { type Row } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -50,7 +49,6 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const issue = row.original
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
   const transitions = transitionsByStatus[issue.status] ?? []
 
   const handleTransition = async (action: string) => {
@@ -76,25 +74,19 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={() => navigate({ to: "/issues/$id", params: { id: issue.id } })}>
-          View Details
-        </DropdownMenuItem>
         {transitions.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Transition</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                {transitions.map((t) => (
-                  <DropdownMenuItem key={t.action} onClick={() => handleTransition(t.action)}>
-                    {t.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Transition</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {transitions.map((t) => (
+                <DropdownMenuItem key={t.action} onClick={() => handleTransition(t.action)}>
+                  {t.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         )}
-        <DropdownMenuSeparator />
+        {transitions.length > 0 && <DropdownMenuSeparator />}
         <DropdownMenuItem
           className="text-destructive"
           onClick={handleDelete}
