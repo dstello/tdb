@@ -78,18 +78,23 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-col gap-3">
       <DataTableToolbar table={table} />
       <div className="overflow-hidden rounded-lg border border-border/60">
-        <Table className="table-fixed">
+        <Table className="table-fixed w-full">
+          <colgroup>
+            {table.getVisibleLeafColumns().map((col) => {
+              const explicitSize = col.columnDef.size
+              // TanStack Table default size is 150; only apply widths we explicitly set
+              const hasExplicitSize = explicitSize !== undefined && explicitSize !== 150
+              return <col key={col.id} style={hasExplicitSize ? { width: explicitSize } : undefined} />
+            })}
+          </colgroup>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b border-border/60 hover:bg-transparent">
-                {headerGroup.headers.map((header) => {
-                  const size = header.column.columnDef.size
-                  return (
+                {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
                       className="h-9 text-xs font-medium text-muted-foreground/70"
-                      style={size ? { width: size } : undefined}
                     >
                       {header.isPlaceholder
                         ? null
@@ -98,8 +103,7 @@ export function DataTable<TData, TValue>({
                             header.getContext()
                           )}
                     </TableHead>
-                  )
-                })}
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -128,7 +132,7 @@ export function DataTable<TData, TValue>({
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-2.5">
+                      <TableCell key={cell.id} className="py-2.5 overflow-hidden">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
