@@ -42,29 +42,30 @@ const priorityOptions = [
   { value: 'P4', label: 'P4' },
 ]
 
-const transitionMap: Record<string, { action: string; label: string; icon: React.ComponentType<{ className?: string }>; className: string }[]> = {
+const transitionMap: Record<string, { actions: string[]; label: string; icon: React.ComponentType<{ className?: string }>; className: string }[]> = {
   open: [
-    { action: 'start', label: 'Start', icon: Play, className: 'text-emerald-400 hover:bg-emerald-400/10' },
-    { action: 'review', label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
-    { action: 'block', label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
-    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['start'], label: 'Start', icon: Play, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['review'], label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { actions: ['block'], label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   in_progress: [
-    { action: 'review', label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
-    { action: 'block', label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
-    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['review'], label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { actions: ['close', 'reopen'], label: 'Back to Ready', icon: RotateCcw, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['block'], label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   in_review: [
-    { action: 'approve', label: 'Approve', icon: Check, className: 'text-emerald-400 hover:bg-emerald-400/10' },
-    { action: 'reject', label: 'Reject', icon: RotateCcw, className: 'text-orange-400 hover:bg-orange-400/10' },
-    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['approve'], label: 'Approve', icon: Check, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['reject'], label: 'Back to Ready', icon: RotateCcw, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   blocked: [
-    { action: 'unblock', label: 'Unblock', icon: LockOpen, className: 'text-emerald-400 hover:bg-emerald-400/10' },
-    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['unblock'], label: 'Unblock', icon: LockOpen, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   closed: [
-    { action: 'reopen', label: 'Reopen', icon: RotateCcw, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { actions: ['reopen'], label: 'Reopen', icon: RotateCcw, className: 'text-blue-400 hover:bg-blue-400/10' },
   ],
 }
 
@@ -94,8 +95,13 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
   })
 
   const transitionMut = useMutation({
-    mutationFn: ({ action }: { action: string }) =>
-      transitionIssue(issueId, action as any),
+    mutationFn: async ({ actions }: { actions: string[] }) => {
+      let result
+      for (const action of actions) {
+        result = await transitionIssue(issueId, action as any)
+      }
+      return result
+    },
     onSuccess: () => queryClient.invalidateQueries(),
   })
 
@@ -373,11 +379,11 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                 <div className="flex gap-1 flex-wrap">
                   {transitions.map((t) => (
                     <Button
-                      key={t.action}
+                      key={t.actions.join('-')}
                       variant="ghost"
                       size="sm"
                       className={cn("gap-1.5", t.className)}
-                      onClick={() => transitionMut.mutate({ action: t.action })}
+                      onClick={() => transitionMut.mutate({ actions: t.actions })}
                       disabled={transitionMut.isPending}
                     >
                       <t.icon className="size-3.5" />
