@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -102,6 +102,12 @@ function EpicDetailPage() {
     onSuccess: () => queryClient.invalidateQueries(),
   })
 
+  const parentNames = useMemo(() => {
+    const map = new Map<string, string>()
+    if (epic) map.set(id, epic.title)
+    return map
+  }, [id, epic])
+
   const tableMeta: IssueTableMeta = {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
     showClosed,
@@ -109,6 +115,7 @@ function EpicDetailPage() {
     showCreate,
     onShowCreate: () => setShowCreate(true),
     onCloseCreate: () => setShowCreate(false),
+    parentNames,
   }
 
   if (epicQuery.isLoading) {

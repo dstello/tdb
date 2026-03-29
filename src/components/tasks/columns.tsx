@@ -6,7 +6,7 @@ import { types, statuses, priorities } from "./data"
 import { type Issue } from "~/lib/api"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
-import { CalendarClock, AlertCircle } from "lucide-react"
+import { CornerDownRight } from "lucide-react"
 
 export interface IssueTableMeta {
   onIssueClick?: (issueId: string) => void
@@ -18,11 +18,13 @@ export interface IssueTableMeta {
   onShowCreate?: () => void
   onCloseCreate?: () => void
   focusedRowIndex?: number
+  parentNames?: Map<string, string>
 }
 
 export const columns: ColumnDef<Issue>[] = [
   {
     id: "select",
+    size: 32,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -47,6 +49,7 @@ export const columns: ColumnDef<Issue>[] = [
   },
   {
     accessorKey: "id",
+    size: 72,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Issue" />
     ),
@@ -65,17 +68,26 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Title" />
     ),
-    cell: ({ row }) => {
-      const issueType = types.find((t) => t.value === row.original.type)
+    cell: ({ row, table }) => {
+      const issue = row.original
+      const isSubtask = !!issue.parent_id
+      const meta = table.options.meta as IssueTableMeta | undefined
+      const parentName = isSubtask && meta?.parentNames?.get(issue.parent_id!)
+      const issueType = types.find((t) => t.value === issue.type)
 
       return (
-        <div className="flex items-center gap-2.5">
-          {issueType && (
+        <div className="flex items-center gap-2 min-w-0">
+          {isSubtask ? (
+            <CornerDownRight className="size-3.5 shrink-0 text-muted-foreground/50" />
+          ) : issueType ? (
             <span className={`shrink-0 ${issueType.iconClassName ?? 'text-muted-foreground'}`} title={issueType.label}>
               <issueType.icon className="size-3.5" />
             </span>
-          )}
-          <span className="max-w-[500px] truncate text-[13px]">
+          ) : null}
+          <span className="truncate text-[13px]">
+            {parentName && (
+              <span className="text-muted-foreground">{parentName}: </span>
+            )}
             {row.getValue("title")}
           </span>
         </div>
@@ -84,6 +96,7 @@ export const columns: ColumnDef<Issue>[] = [
   },
   {
     accessorKey: "status",
+    size: 120,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
@@ -133,6 +146,7 @@ export const columns: ColumnDef<Issue>[] = [
   },
   {
     accessorKey: "priority",
+    size: 100,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Priority" />
     ),
@@ -157,44 +171,8 @@ export const columns: ColumnDef<Issue>[] = [
     },
   },
   {
-    accessorKey: "due_date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Due" />
-    ),
-    cell: ({ row }) => {
-      const issue = row.original
-      const dueDate = issue.due_date ? new Date(issue.due_date) : null
-      const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
-      const now = new Date()
-      const isOverdue = dueDate && dueDate < now
-      const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - now.getTime() < 3 * 86400000
-      const isDeferred = deferUntil && deferUntil > now
-
-      if (!dueDate && !isDeferred) return null
-
-      return (
-        <div className="flex flex-col gap-0.5">
-          {dueDate && (
-            <span className={`inline-flex items-center gap-1 text-xs ${
-              isOverdue ? 'text-destructive font-medium' : isDueSoon ? 'text-amber-500' : 'text-muted-foreground'
-            }`}>
-              {isOverdue && <AlertCircle className="size-3" />}
-              {dueDate.toLocaleDateString()}
-            </span>
-          )}
-          {isDeferred && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/70">
-              <CalendarClock className="size-2.5" />
-              Deferred
-            </span>
-          )}
-        </div>
-      )
-    },
-    enableSorting: true,
-  },
-  {
     id: "actions",
+    size: 40,
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ]

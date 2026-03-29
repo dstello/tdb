@@ -40,7 +40,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    React.useState<VisibilityState>({ type: false })
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
@@ -78,13 +78,19 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-col gap-3">
       <DataTableToolbar table={table} />
       <div className="overflow-hidden rounded-lg border border-border/60">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b border-border/60 hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
+                  const size = header.column.columnDef.size
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan} className="h-9 text-xs font-medium text-muted-foreground/70">
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className="h-9 text-xs font-medium text-muted-foreground/70"
+                      style={size ? { width: size } : undefined}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(

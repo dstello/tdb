@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -83,6 +83,16 @@ function BoardsPage() {
   const issues: Issue[] = boardIssues.map((bi) => bi.issue)
   const filteredIssues = showClosed ? issues : issues.filter((i) => i.status !== 'closed')
 
+  const parentNames = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const issue of issues) {
+      if (issue.type === 'epic' || issues.some((i) => i.parent_id === issue.id)) {
+        map.set(issue.id, issue.title)
+      }
+    }
+    return map
+  }, [issues])
+
   const visibleColumns = showClosed
     ? swimlaneColumns
     : swimlaneColumns.filter((col) => col.status !== 'closed')
@@ -91,6 +101,7 @@ function BoardsPage() {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
     showClosed,
     onToggleClosed: () => setShowClosed((prev) => !prev),
+    parentNames,
   }
 
   return (

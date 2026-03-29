@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMonitor, fetchStats, deleteIssue, type Issue } from '~/lib/api'
@@ -63,6 +63,17 @@ function Dashboard() {
     if (hideSubtasks && i.parent_id) return false
     return true
   })
+
+  // Build parent name lookup for subtask display
+  const parentNames = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const issue of allIssues) {
+      if (issue.type === 'epic' || allIssues.some((i) => i.parent_id === issue.id)) {
+        map.set(issue.id, issue.title)
+      }
+    }
+    return map
+  }, [allIssues])
 
   const getFocusedIssue = useCallback((): Issue | null => {
     if (focusedRowIndex < 0 || focusedRowIndex >= issues.length) return null
@@ -184,6 +195,7 @@ function Dashboard() {
     onShowCreate: () => setShowCreate(true),
     onCloseCreate: () => setShowCreate(false),
     focusedRowIndex,
+    parentNames,
   }
 
   return (
