@@ -7,6 +7,7 @@ import {
   addComment,
   deleteIssue,
   updateIssue,
+  type Issue,
 } from '~/lib/api'
 import {
   Drawer,
@@ -19,9 +20,17 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { Textarea } from '~/components/ui/textarea'
 import { Separator } from '~/components/ui/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import { statuses, types, priorities } from '~/components/tasks/data'
-import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle } from 'lucide-react'
+import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil } from 'lucide-react'
 
 const transitionMap: Record<string, { action: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[]> = {
   open: [
@@ -61,6 +70,13 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
   const [editingDue, setEditingDue] = useState(false)
   const [deferValue, setDeferValue] = useState('')
   const [dueValue, setDueValue] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState<{
+    title: string
+    description: string
+    type: string
+    priority: string
+  } | null>(null)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['issue', issueId],
@@ -109,6 +125,36 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
     },
   })
 
+  const editMut = useMutation({
+    mutationFn: (fields: { title?: string; description?: string; type?: string; priority?: string }) =>
+      updateIssue(issueId, fields),
+    onSuccess: () => {
+      setIsEditing(false)
+      setEditForm(null)
+      queryClient.invalidateQueries()
+    },
+  })
+
+  const startEditing = (issue: Issue) => {
+    setEditForm({
+      title: issue.title,
+      description: issue.description ?? '',
+      type: issue.type,
+      priority: issue.priority,
+    })
+    setIsEditing(true)
+  }
+
+  const saveEdit = () => {
+    if (!editForm) return
+    editMut.mutate(editForm)
+  }
+
+  const cancelEdit = () => {
+    setIsEditing(false)
+    setEditForm(null)
+  }
+
   const issue = data?.issue
   const transitions = issue ? (transitionMap[issue.status] ?? []) : []
   const status = issue ? statuses.find((s) => s.value === issue.status) : null
@@ -128,6 +174,12 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             </DrawerDescription>
           </div>
           <div className="flex items-center gap-0.5 shrink-0">
+            {issue && !isEditing && (
+              <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground" onClick={() => startEditing(issue)}>
+                <Pencil className="size-3.5" />
+                <span className="sr-only">Edit</span>
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground" asChild>
               <Link to="/issues/$id" params={{ id: issueId }}>
                 <ExternalLink className="size-3.5" />
@@ -155,47 +207,119 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
 
         {issue && (
           <div className="flex flex-col gap-4 px-4 pb-4">
-            {/* Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {issueType && (
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <issueType.icon className="size-3.5" />
-                  {issueType.label}
-                </span>
-              )}
-              {status && (
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
-                  <status.icon className="size-3" />
-                  {status.label}
-                </span>
-              )}
-              {priority && (
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${priority.className}`}>
-                  <priority.icon className="size-3" />
-                  {priority.label}
-                </span>
-              )}
-            </div>
+            {/* Edit mode */}
+            {isEditing && editForm ? (
+              <div className="flex flex-col gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Title</label>
+                  <Input
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.stopPropagation(); saveEdit() }
+                      if (e.key === 'Escape') cancelEdit()
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
+                    <Select value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="task">Task</SelectItem>
+                        <SelectItem value="bug">Bug</SelectItem>
+                        <SelectItem value="feature">Feature</SelectItem>
+                        <SelectItem value="epic">Epic</SelectItem>
+                        <SelectItem value="chore">Chore</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
+                    <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="P0">P0 — Critical</SelectItem>
+                        <SelectItem value="P1">P1 — High</SelectItem>
+                        <SelectItem value="P2">P2 — Medium</SelectItem>
+                        <SelectItem value="P3">P3 — Low</SelectItem>
+                        <SelectItem value="P4">P4 — Minimal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Description</label>
+                  <Textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.stopPropagation(); saveEdit() }
+                      if (e.key === 'Escape') cancelEdit()
+                    }}
+                  />
+                </div>
+                {editMut.error && (
+                  <p className="text-sm text-destructive">
+                    {editMut.error instanceof Error ? editMut.error.message : 'Failed to save'}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveEdit} disabled={!editForm.title.trim() || editMut.isPending}>
+                    {editMut.isPending ? 'Saving...' : 'Save'}
+                    <span className="ml-1 text-[10px] opacity-60">⌘↵</span>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={cancelEdit}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {issueType && (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <issueType.icon className="size-3.5" />
+                      {issueType.label}
+                    </span>
+                  )}
+                  {status && (
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>
+                      <status.icon className="size-3" />
+                      {status.label}
+                    </span>
+                  )}
+                  {priority && (
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${priority.className}`}>
+                      <priority.icon className="size-3" />
+                      {priority.label}
+                    </span>
+                  )}
+                </div>
 
-            {/* Description */}
-            {issue.description && (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {issue.description}
-              </p>
+                {/* Description */}
+                {issue.description && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {issue.description}
+                  </p>
+                )}
+
+                {/* Meta */}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  {issue.points != null && <span>{issue.points} pts</span>}
+                  {issue.sprint && <span>Sprint: {issue.sprint}</span>}
+                  {issue.labels?.length > 0 &&
+                    issue.labels.map((l) => (
+                      <Badge key={l} variant="outline" className="text-xs">
+                        {l}
+                      </Badge>
+                    ))}
+                  <span>Created: {new Date(issue.created_at).toLocaleDateString()}</span>
+                </div>
+              </>
             )}
-
-            {/* Meta */}
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              {issue.points != null && <span>{issue.points} pts</span>}
-              {issue.sprint && <span>Sprint: {issue.sprint}</span>}
-              {issue.labels?.length > 0 &&
-                issue.labels.map((l) => (
-                  <Badge key={l} variant="outline" className="text-xs">
-                    {l}
-                  </Badge>
-                ))}
-              <span>Created: {new Date(issue.created_at).toLocaleDateString()}</span>
-            </div>
 
             {/* Deferral & Due Dates */}
             <DeferralSection

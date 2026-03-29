@@ -5,7 +5,7 @@ import { fetchMonitor, fetchStats, deleteIssue, type Issue } from '~/lib/api'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { IssueQuickView } from '~/components/IssueQuickView'
-import { CreateIssueDrawer } from '~/components/CreateIssueDialog'
+import { KeyboardShortcutsDialog } from '~/components/KeyboardShortcuts'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -39,6 +39,7 @@ function Dashboard() {
   const [showClosed, setShowClosed] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const [showShortcuts, setShowShortcuts] = useState(false)
 
   const monitor = useQuery({
     queryKey: ['monitor', true],
@@ -86,6 +87,7 @@ function Dashboard() {
 
       // j / ArrowDown: move focus down
       if (e.key === 'j' || e.key === 'ArrowDown') {
+        if (issues.length === 0) return
         e.preventDefault()
         setFocusedRowIndex((prev) => Math.min(prev + 1, issues.length - 1))
         return
@@ -93,6 +95,7 @@ function Dashboard() {
 
       // k / ArrowUp: move focus up
       if (e.key === 'k' || e.key === 'ArrowUp') {
+        if (issues.length === 0) return
         e.preventDefault()
         setFocusedRowIndex((prev) => Math.max(prev - 1, 0))
         return
@@ -118,11 +121,13 @@ function Dashboard() {
         if (issue) {
           e.preventDefault()
           if (confirm(`Delete "${issue.title}"?`)) {
-            deleteIssue(issue.id).then(() => {
-              queryClient.invalidateQueries({ queryKey: ['monitor'] })
-              queryClient.invalidateQueries({ queryKey: ['stats'] })
-              setFocusedRowIndex((prev) => Math.max(prev - 1, 0))
-            })
+            deleteIssue(issue.id)
+              .then(() => {
+                queryClient.invalidateQueries({ queryKey: ['monitor'] })
+                queryClient.invalidateQueries({ queryKey: ['stats'] })
+                setFocusedRowIndex((prev) => Math.max(prev - 1, 0))
+              })
+              .catch(() => {})
           }
         }
         return
@@ -133,6 +138,13 @@ function Dashboard() {
         e.preventDefault()
         const input = document.querySelector<HTMLInputElement>('[placeholder="Filter issues..."]')
         input?.focus()
+        return
+      }
+
+      // ?: show shortcuts help
+      if (e.key === '?') {
+        e.preventDefault()
+        setShowShortcuts((v) => !v)
         return
       }
     }
@@ -161,15 +173,13 @@ function Dashboard() {
               {stats.data.total} total · {Math.round(stats.data.completion_rate * 100)}% done{stats.data.created_today > 0 ? ` · +${stats.data.created_today} today` : ''}
             </p>
           )}
-          <span className="text-muted-foreground/40 text-[10px] hidden sm:inline">
-            <kbd className="rounded border border-border/60 px-1 py-0.5 font-mono">n</kbd> new
-            {' · '}
-            <kbd className="rounded border border-border/60 px-1 py-0.5 font-mono">j</kbd><kbd className="rounded border border-border/60 px-1 py-0.5 font-mono">k</kbd> nav
-            {' · '}
-            <kbd className="rounded border border-border/60 px-1 py-0.5 font-mono">e</kbd> open
-            {' · '}
-            <kbd className="rounded border border-border/60 px-1 py-0.5 font-mono">/</kbd> search
-          </span>
+          <button
+            onClick={() => setShowShortcuts(true)}
+            className="rounded border border-border/40 bg-muted/30 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60 transition-colors"
+            title="Keyboard shortcuts (?)"
+          >
+            ?
+          </button>
         </div>
       </div>
 
@@ -189,6 +199,8 @@ function Dashboard() {
           onClose={() => setSelectedIssueId(null)}
         />
       )}
+
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
     </div>
   )
 }

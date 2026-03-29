@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { Kbd } from "~/components/KeyboardShortcuts"
 
 import { statuses, filterStatuses, types, priorities } from "./data"
 import { CreateIssueDrawer } from "~/components/CreateIssueDialog"
@@ -80,6 +81,7 @@ export function DataTableToolbar<TData>({
           <Button size="sm" onClick={() => meta?.onShowCreate?.()}>
             <Plus />
             New Issue
+            <Kbd>N</Kbd>
           </Button>
         </div>
       </div>

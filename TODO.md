@@ -1,5 +1,8 @@
 - [x] add toggle to hide completed tasks
 - [x] Add support for keyboard shortcuts (e.g. "n" for new task, "e" for edit, "d" for delete, command + enter to save and create new task)
+- [ ] Show keyboard shortcuts in the UI (e.g. on buttons, tooltips, modals, etc.)
+- [ ] Edit existing tasks (currently only supports creating new tasks)
 - [x] Add support for "epics" and "swimlanes"
 - [x] Read through available TD API endpoints and features and add support for more of them.
+- [ ] Code review and refactor as needed to improve code quality, maintainability, and performance.
 - [x] fix invalid date in activity
