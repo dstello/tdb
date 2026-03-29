@@ -8,13 +8,12 @@ import {
   updateBoard,
   deleteBoard,
   type Board,
-  type BoardIssue,
+  type Issue,
 } from '~/lib/api'
 import { IssueQuickView } from '~/components/IssueQuickView'
-import { Badge } from '~/components/ui/badge'
+import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { Separator } from '~/components/ui/separator'
 import {
   Dialog,
   DialogContent,
@@ -23,15 +22,11 @@ import {
   DialogFooter,
   DialogClose,
 } from '~/components/ui/dialog'
-import { statuses, types, priorities } from '~/components/tasks/data'
 import {
   Plus,
   Pencil,
   Trash2,
   LayoutGrid,
-  CalendarClock,
-  CalendarCheck,
-  AlertCircle,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/boards')({
@@ -81,15 +76,11 @@ function BoardsPage() {
   })
 
   const boardIssues = boardDetailQuery.data?.issues ?? []
-
-  const issuesByStatus = swimlaneColumns.map((col) => ({
-    ...col,
-    issues: boardIssues.filter((bi) => bi.issue.status === col.status),
-  }))
+  const issues: Issue[] = boardIssues.map((bi) => bi.issue)
 
   const visibleColumns = showClosed
-    ? issuesByStatus
-    : issuesByStatus.filter((col) => col.status !== 'closed')
+    ? swimlaneColumns
+    : swimlaneColumns.filter((col) => col.status !== 'closed')
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4">
@@ -179,46 +170,15 @@ function BoardsPage() {
         </div>
       )}
 
-      {/* Swimlane columns */}
+      {/* Swimlane board */}
       {selectedBoardId && (
-        <div className="flex gap-3 overflow-x-auto pb-2 flex-1 min-h-0">
-          {visibleColumns.map((col) => {
-            const statusMeta = statuses.find((s) => s.value === col.status)
-            return (
-              <div
-                key={col.status}
-                className="flex flex-col min-w-[240px] w-[280px] shrink-0 rounded-lg bg-muted/30 border border-border/40"
-              >
-                {/* Column header */}
-                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/30">
-                  {statusMeta && (
-                    <statusMeta.icon className={`size-3.5 ${statusMeta.iconClassName}`} />
-                  )}
-                  <span className="text-sm font-medium">{col.label}</span>
-                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                    {col.issues.length}
-                  </span>
-                </div>
-
-                {/* Cards */}
-                <div className="flex flex-col gap-1.5 p-1.5 overflow-y-auto flex-1">
-                  {col.issues.map((bi) => (
-                    <IssueCard
-                      key={bi.issue.id}
-                      boardIssue={bi}
-                      onClick={() => setSelectedIssueId(bi.issue.id)}
-                    />
-                  ))}
-                  {col.issues.length === 0 && (
-                    <div className="text-muted-foreground/50 text-xs text-center py-6">
-                      No issues
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        <SwimlaneBoardView
+          issues={issues}
+          onIssueClick={(issueId) => setSelectedIssueId(issueId)}
+          columns={[...visibleColumns]}
+          isLoading={boardDetailQuery.isLoading}
+          emptyMessage="No issues match this board's query."
+        />
       )}
 
       {/* Quick view drawer */}
@@ -244,84 +204,6 @@ function BoardsPage() {
         />
       )}
     </div>
-  )
-}
-
-// --- Issue Card ---
-
-function IssueCard({
-  boardIssue,
-  onClick,
-}: {
-  boardIssue: BoardIssue
-  onClick: () => void
-}) {
-  const issue = boardIssue.issue
-  const issueType = types.find((t) => t.value === issue.type)
-  const priority = priorities.find((p) => p.value === issue.priority.toLowerCase())
-
-  const now = new Date()
-  const dueDate = issue.due_date ? new Date(issue.due_date) : null
-  const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
-  const isOverdue = dueDate && dueDate < now
-  const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - now.getTime() < 3 * 86400000
-  const isDeferred = deferUntil && deferUntil > now
-
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col gap-1.5 rounded-md bg-card border border-border/50 p-2.5 text-left hover:bg-card/80 hover:border-border transition-colors cursor-pointer"
-    >
-      {/* Title row */}
-      <div className="flex items-start gap-1.5">
-        {issueType && (
-          <issueType.icon className={`size-3.5 mt-0.5 shrink-0 ${issueType.iconClassName}`} />
-        )}
-        <span className="text-sm leading-snug line-clamp-2">{issue.title}</span>
-      </div>
-
-      {/* Footer meta */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="font-mono text-[10px] text-muted-foreground">
-          {issue.id.slice(0, 10)}
-        </span>
-        {priority && (
-          <span className={`inline-flex items-center gap-0.5 rounded px-1 py-px text-[10px] font-medium ${priority.className}`}>
-            <priority.icon className="size-2.5" />
-            {priority.label}
-          </span>
-        )}
-        {issue.labels?.length > 0 && issue.labels.slice(0, 2).map((l) => (
-          <Badge key={l} variant="outline" className="text-[9px] px-1 py-0 h-4">
-            {l}
-          </Badge>
-        ))}
-      </div>
-
-      {/* Deferral / Due date indicators */}
-      {(isDeferred || dueDate) && (
-        <div className="flex items-center gap-2 mt-0.5">
-          {isDeferred && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-              <CalendarClock className="size-2.5" />
-              Deferred
-            </span>
-          )}
-          {dueDate && (
-            <span className={`inline-flex items-center gap-0.5 text-[10px] ${
-              isOverdue
-                ? 'text-destructive font-medium'
-                : isDueSoon
-                  ? 'text-amber-500 font-medium'
-                  : 'text-muted-foreground'
-            }`}>
-              {isOverdue ? <AlertCircle className="size-2.5" /> : <CalendarCheck className="size-2.5" />}
-              {dueDate.toLocaleDateString()}
-            </span>
-          )}
-        </div>
-      )}
-    </button>
   )
 }
 

@@ -7,10 +7,12 @@ import {
   transitionIssue,
   type Issue,
 } from '~/lib/api'
-import { statuses, priorities, types } from '~/components/tasks/data'
+import { statuses, priorities } from '~/components/tasks/data'
+import { columns, type IssueTableMeta } from '~/components/tasks/columns'
+import { DataTable } from '~/components/tasks/data-table'
+import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { CreateIssueDrawer } from '~/components/CreateIssueDialog'
-import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import {
@@ -24,22 +26,14 @@ import {
   ShieldBan,
   XCircle,
   LockOpen,
-  CalendarClock,
-  CalendarCheck,
-  AlertCircle,
+  LayoutGrid,
+  List,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 export const Route = createFileRoute('/epics/$id')({
   component: EpicDetailPage,
 })
-
-const swimlaneColumns = [
-  { status: 'open', label: 'Ready' },
-  { status: 'in_progress', label: 'In Progress' },
-  { status: 'in_review', label: 'In Review' },
-  { status: 'blocked', label: 'Blocked' },
-] as const
 
 const transitionMap: Record<string, { actions: string[]; label: string; icon: typeof Play; className: string }[]> = {
   open: [
@@ -62,19 +56,21 @@ const transitionMap: Record<string, { actions: string[]; label: string; icon: ty
   ],
 }
 
+type ViewMode = 'board' | 'list'
+
 function EpicDetailPage() {
   const { id } = Route.useParams()
   const queryClient = useQueryClient()
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [showClosed, setShowClosed] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('board')
 
   const epicQuery = useQuery({
     queryKey: ['issue', id],
     queryFn: () => fetchIssue(id),
   })
 
-  // Fetch all issues and filter children client-side
   const childrenQuery = useQuery({
     queryKey: ['issues', 'children', id],
     queryFn: () => fetchIssues({ limit: 500 }),
@@ -90,10 +86,13 @@ function EpicDetailPage() {
   const priority = epic ? priorities.find((p) => p.value === epic.priority.toLowerCase()) : null
   const transitions = epic ? (transitionMap[epic.status] ?? []) : []
 
-  // Progress stats
   const totalChildren = children.length
   const closedChildren = children.filter((c) => c.status === 'closed').length
   const progress = totalChildren > 0 ? Math.round((closedChildren / totalChildren) * 100) : 0
+
+  const filteredChildren = showClosed
+    ? children
+    : children.filter((c) => c.status !== 'closed')
 
   const transitionMut = useMutation({
     mutationFn: async ({ actions }: { actions: string[] }) => {
@@ -105,6 +104,15 @@ function EpicDetailPage() {
     },
     onSuccess: () => queryClient.invalidateQueries(),
   })
+
+  const tableMeta: IssueTableMeta = {
+    onIssueClick: (issueId) => setSelectedIssueId(issueId),
+    showClosed,
+    onToggleClosed: () => setShowClosed((prev) => !prev),
+    showCreate,
+    onShowCreate: () => setShowCreate(true),
+    onCloseCreate: () => setShowCreate(false),
+  }
 
   if (epicQuery.isLoading) {
     return <div className="text-sm text-muted-foreground py-12 text-center">Loading epic...</div>
@@ -191,11 +199,11 @@ function EpicDetailPage() {
 
       <Separator />
 
-      {/* Subtasks header */}
+      {/* Subtasks header with view toggle */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-medium text-muted-foreground">Subtasks</h2>
-          {totalChildren > 0 && (
+          {totalChildren > 0 && viewMode === 'board' && (
             <button
               onClick={() => setShowClosed(!showClosed)}
               className={cn(
@@ -207,66 +215,52 @@ function EpicDetailPage() {
             </button>
           )}
         </div>
-        <Button size="sm" variant="secondary" onClick={() => setShowCreate(true)}>
-          <Plus className="size-3.5 mr-1" />
-          Add Subtask
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* View mode toggle */}
+          <div className="flex items-center rounded-md border border-border/60 p-0.5">
+            <button
+              onClick={() => setViewMode('board')}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
+                viewMode === 'board'
+                  ? "bg-foreground/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <LayoutGrid className="size-3.5" />
+              Board
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
+                viewMode === 'list'
+                  ? "bg-foreground/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <List className="size-3.5" />
+              List
+            </button>
+          </div>
+          <Button size="sm" variant="secondary" onClick={() => setShowCreate(true)}>
+            <Plus className="size-3.5 mr-1" />
+            Add Subtask
+          </Button>
+        </div>
       </div>
 
-      {/* Swimlane board */}
-      {childrenQuery.isLoading ? (
-        <div className="text-sm text-muted-foreground py-8 text-center">Loading subtasks...</div>
-      ) : children.length === 0 ? (
-        <div className="text-sm text-muted-foreground/50 py-8 text-center">
-          No subtasks yet. Add one to get started.
-        </div>
+      {/* Content based on view mode */}
+      {viewMode === 'board' ? (
+        <SwimlaneBoardView
+          issues={children}
+          onIssueClick={(issueId) => setSelectedIssueId(issueId)}
+          showClosed={showClosed}
+          isLoading={childrenQuery.isLoading}
+          emptyMessage="No subtasks yet. Add one to get started."
+        />
       ) : (
-        <div className="grid grid-cols-4 gap-3">
-          {swimlaneColumns.map((col) => {
-            const colIssues = children.filter((c) => c.status === col.status)
-            const statusDef = statuses.find((s) => s.value === col.status)
-            return (
-              <div key={col.status} className="space-y-2">
-                <div className="flex items-center gap-1.5 px-1">
-                  {statusDef && <statusDef.icon className={`size-3 ${statusDef.iconClassName}`} />}
-                  <span className="text-[11px] font-medium text-muted-foreground">{col.label}</span>
-                  {colIssues.length > 0 && (
-                    <span className="text-[10px] text-muted-foreground/50 tabular-nums">{colIssues.length}</span>
-                  )}
-                </div>
-                <div className="space-y-1.5 min-h-[80px]">
-                  {colIssues.map((issue) => (
-                    <SubtaskCard
-                      key={issue.id}
-                      issue={issue}
-                      onClick={() => setSelectedIssueId(issue.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Closed issues (collapsible) */}
-      {showClosed && closedChildren > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-1.5 px-1">
-            <Check className="size-3 text-emerald-500" />
-            <span className="text-[11px] font-medium text-muted-foreground">Closed</span>
-            <span className="text-[10px] text-muted-foreground/50 tabular-nums">{closedChildren}</span>
-          </div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {children.filter((c) => c.status === 'closed').map((issue) => (
-              <SubtaskCard
-                key={issue.id}
-                issue={issue}
-                onClick={() => setSelectedIssueId(issue.id)}
-              />
-            ))}
-          </div>
-        </div>
+        <DataTable data={filteredChildren} columns={columns} meta={tableMeta} />
       )}
 
       {/* Quick view drawer */}
@@ -286,63 +280,5 @@ function EpicDetailPage() {
         />
       )}
     </div>
-  )
-}
-
-function SubtaskCard({ issue, onClick }: { issue: Issue; onClick: () => void }) {
-  const issueType = types.find((t) => t.value === issue.type)
-  const priority = priorities.find((p) => p.value === issue.priority.toLowerCase())
-
-  const now = new Date()
-  const dueDate = issue.due_date ? new Date(issue.due_date) : null
-  const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
-  const isOverdue = dueDate && dueDate < now
-  const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - now.getTime() < 3 * 86400000
-  const isDeferred = deferUntil && deferUntil > now
-
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex flex-col gap-1.5 rounded-md border border-border/50 p-2.5 text-left hover:border-border transition-colors cursor-pointer w-full",
-        issue.status === 'closed' ? "bg-card/50 opacity-60" : "bg-card"
-      )}
-    >
-      <div className="flex items-start gap-1.5">
-        {issueType && (
-          <issueType.icon className={`size-3.5 mt-0.5 shrink-0 ${issueType.iconClassName}`} />
-        )}
-        <span className={cn("text-sm leading-snug line-clamp-2", issue.status === 'closed' && "line-through")}>{issue.title}</span>
-      </div>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="font-mono text-[10px] text-muted-foreground">{issue.id.slice(0, 10)}</span>
-        {priority && (
-          <span className={`inline-flex items-center gap-0.5 rounded px-1 py-px text-[10px] font-medium ${priority.className}`}>
-            <priority.icon className="size-2.5" />
-            {priority.label}
-          </span>
-        )}
-        {issue.labels?.length > 0 && issue.labels.slice(0, 2).map((l) => (
-          <Badge key={l} variant="outline" className="text-[9px] px-1 py-0 h-4">{l}</Badge>
-        ))}
-      </div>
-      {(isDeferred || dueDate) && (
-        <div className="flex items-center gap-2 mt-0.5">
-          {isDeferred && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-              <CalendarClock className="size-2.5" /> Deferred
-            </span>
-          )}
-          {dueDate && (
-            <span className={`inline-flex items-center gap-0.5 text-[10px] ${
-              isOverdue ? 'text-destructive font-medium' : isDueSoon ? 'text-amber-500 font-medium' : 'text-muted-foreground'
-            }`}>
-              {isOverdue ? <AlertCircle className="size-2.5" /> : <CalendarCheck className="size-2.5" />}
-              {dueDate.toLocaleDateString()}
-            </span>
-          )}
-        </div>
-      )}
-    </button>
   )
 }

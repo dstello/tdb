@@ -111,8 +111,12 @@ function Dashboard() {
         const issue = getFocusedIssue()
         if (issue) {
           e.preventDefault()
-          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            navigate({ to: '/issues/$id', params: { id: issue.id } })
+          if (issue.type === 'epic' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+            if (issue.type === 'epic') {
+              navigate({ to: '/epics/$id', params: { id: issue.id } })
+            } else {
+              navigate({ to: '/issues/$id', params: { id: issue.id } })
+            }
           } else {
             setSelectedIssueId(issue.id)
           }
@@ -159,7 +163,14 @@ function Dashboard() {
   }, [issues, focusedRowIndex, selectedIssueId, showCreate, getFocusedIssue, navigate, queryClient])
 
   const tableMeta: IssueTableMeta = {
-    onIssueClick: (issueId) => setSelectedIssueId(issueId),
+    onIssueClick: (issueId) => {
+      const issue = issues.find((i) => i.id === issueId)
+      if (issue?.type === 'epic') {
+        navigate({ to: '/epics/$id', params: { id: issueId } })
+      } else {
+        setSelectedIssueId(issueId)
+      }
+    },
     showClosed,
     onToggleClosed: () => setShowClosed((prev) => !prev),
     hideSubtasks,
