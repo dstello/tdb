@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchIssue,
+  fetchIssues,
   transitionIssue,
   addComment,
   deleteIssue,
@@ -23,7 +24,7 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Separator } from '~/components/ui/separator'
 import { statuses, types, priorities } from '~/components/tasks/data'
-import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil, Play, Eye, ShieldBan, XCircle, Check, RotateCcw, LockOpen } from 'lucide-react'
+import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil, Play, Eye, ShieldBan, XCircle, Check, RotateCcw, LockOpen, Mountain } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 const typeOptions = [
@@ -92,6 +93,23 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['issue', issueId],
     queryFn: () => fetchIssue(issueId),
+  })
+
+  const issue = data?.issue
+
+  // Fetch parent issue if this issue has a parent_id
+  const parentQuery = useQuery({
+    queryKey: ['issue', issue?.parent_id],
+    queryFn: () => fetchIssue(issue!.parent_id!),
+    enabled: !!issue?.parent_id,
+  })
+
+  // Fetch child count if this is an epic
+  const childrenQuery = useQuery({
+    queryKey: ['issues', 'children', issueId],
+    queryFn: () => fetchIssues({ limit: 500 }),
+    enabled: issue?.type === 'epic',
+    select: (data) => data.issues.filter((i) => i.parent_id === issueId),
   })
 
   const transitionMut = useMutation({
@@ -171,11 +189,12 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
     setEditForm(null)
   }
 
-  const issue = data?.issue
   const transitions = issue ? (transitionMap[issue.status] ?? []) : []
   const status = issue ? statuses.find((s) => s.value === issue.status) : null
   const issueType = issue ? types.find((t) => t.value === issue.type) : null
   const priority = issue ? priorities.find((p) => p.value === issue.priority) : null
+  const parentIssue = parentQuery.data?.issue
+  const children = childrenQuery.data ?? []
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
@@ -307,6 +326,18 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               </div>
             ) : (
               <>
+                {/* Parent epic link */}
+                {parentIssue && (
+                  <Link
+                    to="/epics/$id"
+                    params={{ id: parentIssue.id }}
+                    className="inline-flex items-center gap-1.5 text-xs text-purple-400/80 hover:text-purple-400 transition-colors"
+                  >
+                    <Mountain className="size-3" />
+                    {parentIssue.title}
+                  </Link>
+                )}
+
                 {/* Badges */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {issueType && (
@@ -348,6 +379,18 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     ))}
                   <span>Created: {new Date(issue.created_at).toLocaleDateString()}</span>
                 </div>
+
+                {/* Epic children link */}
+                {issue.type === 'epic' && children.length > 0 && (
+                  <Link
+                    to="/epics/$id"
+                    params={{ id: issue.id }}
+                    className="inline-flex items-center gap-1.5 text-xs text-purple-400/80 hover:text-purple-400 transition-colors"
+                  >
+                    <Mountain className="size-3" />
+                    {children.length} subtask{children.length !== 1 ? 's' : ''} — View epic board →
+                  </Link>
+                )}
               </>
             )}
 

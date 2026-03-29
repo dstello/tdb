@@ -31,14 +31,20 @@ const priorityOptions = [
   { value: 'P4', label: 'P4' },
 ]
 
-export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
+interface CreateIssueDrawerProps {
+  onClose: () => void
+  parentId?: string
+  parentTitle?: string
+}
+
+export function CreateIssueDrawer({ onClose, parentId, parentTitle }: CreateIssueDrawerProps) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<CreateIssueInput>({
     title: '',
     type: 'task',
     priority: 'P2',
     description: '',
-    parent_id: undefined,
+    parent_id: parentId,
     defer_until: undefined,
     due_date: undefined,
   })
@@ -56,7 +62,8 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
       await queryClient.invalidateQueries({ queryKey: ['monitor'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: ['boards'] })
-      setForm({ title: '', type: 'task', priority: 'P2', description: '' })
+      queryClient.invalidateQueries({ queryKey: ['issues'] })
+      setForm({ title: '', type: 'task', priority: 'P2', description: '', parent_id: parentId })
       onClose()
     },
   })
@@ -85,9 +92,14 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
       >
         <div className="mx-auto w-full max-w-lg">
           <DrawerHeader className="pb-3">
-            <DrawerTitle className="text-[15px] font-medium">Create Issue</DrawerTitle>
+            <DrawerTitle className="text-[15px] font-medium">
+              {parentId ? 'Add Subtask' : 'Create Issue'}
+            </DrawerTitle>
             <DrawerDescription className="text-[13px]">
-              Add a new issue to your tracker.
+              {parentTitle
+                ? <>Subtask of <span className="text-foreground/70 font-medium">{parentTitle}</span></>
+                : 'Add a new issue to your tracker.'
+              }
             </DrawerDescription>
           </DrawerHeader>
 
@@ -106,7 +118,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Type</label>
                 <div className="flex flex-wrap gap-1">
-                  {typeOptions.map((opt) => (
+                  {typeOptions.filter((opt) => !parentId || opt.value !== 'epic').map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
@@ -213,7 +225,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               onClick={handleSubmit}
               disabled={!form.title.trim() || mutation.isPending}
             >
-              {mutation.isPending ? 'Creating...' : 'Create'}
+              {mutation.isPending ? 'Creating...' : parentId ? 'Add Subtask' : 'Create'}
               <span className="ml-1 text-[10px] opacity-50">⌘↵</span>
             </Button>
             <DrawerClose asChild>

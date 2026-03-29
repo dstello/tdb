@@ -9,10 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EpicsRouteImport } from './routes/epics'
 import { Route as BoardsRouteImport } from './routes/boards'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IssuesIdRouteImport } from './routes/issues.$id'
+import { Route as EpicsIdRouteImport } from './routes/epics.$id'
 
+const EpicsRoute = EpicsRouteImport.update({
+  id: '/epics',
+  path: '/epics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BoardsRoute = BoardsRouteImport.update({
   id: '/boards',
   path: '/boards',
@@ -28,39 +35,58 @@ const IssuesIdRoute = IssuesIdRouteImport.update({
   path: '/issues/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EpicsIdRoute = EpicsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => EpicsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/epics': typeof EpicsRouteWithChildren
+  '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/epics': typeof EpicsRouteWithChildren
+  '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/epics': typeof EpicsRouteWithChildren
+  '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/boards' | '/issues/$id'
+  fullPaths: '/' | '/boards' | '/epics' | '/epics/$id' | '/issues/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/boards' | '/issues/$id'
-  id: '__root__' | '/' | '/boards' | '/issues/$id'
+  to: '/' | '/boards' | '/epics' | '/epics/$id' | '/issues/$id'
+  id: '__root__' | '/' | '/boards' | '/epics' | '/epics/$id' | '/issues/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BoardsRoute: typeof BoardsRoute
+  EpicsRoute: typeof EpicsRouteWithChildren
   IssuesIdRoute: typeof IssuesIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/epics': {
+      id: '/epics'
+      path: '/epics'
+      fullPath: '/epics'
+      preLoaderRoute: typeof EpicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/boards': {
       id: '/boards'
       path: '/boards'
@@ -82,12 +108,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IssuesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/epics/$id': {
+      id: '/epics/$id'
+      path: '/$id'
+      fullPath: '/epics/$id'
+      preLoaderRoute: typeof EpicsIdRouteImport
+      parentRoute: typeof EpicsRoute
+    }
   }
 }
+
+interface EpicsRouteChildren {
+  EpicsIdRoute: typeof EpicsIdRoute
+}
+
+const EpicsRouteChildren: EpicsRouteChildren = {
+  EpicsIdRoute: EpicsIdRoute,
+}
+
+const EpicsRouteWithChildren = EpicsRoute._addFileChildren(EpicsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardsRoute: BoardsRoute,
+  EpicsRoute: EpicsRouteWithChildren,
   IssuesIdRoute: IssuesIdRoute,
 }
 export const routeTree = rootRouteImport
