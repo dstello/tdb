@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createIssue, fetchIssues, type CreateIssueInput } from '~/lib/api'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { createIssue, type CreateIssueInput } from '~/lib/api'
 import {
   Drawer,
   DrawerClose,
@@ -13,13 +13,23 @@ import {
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { cn } from '~/lib/utils'
+
+const typeOptions = [
+  { value: 'task', label: 'Task' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'feature', label: 'Feature' },
+  { value: 'epic', label: 'Epic' },
+  { value: 'chore', label: 'Chore' },
+]
+
+const priorityOptions = [
+  { value: 'P0', label: 'P0' },
+  { value: 'P1', label: 'P1' },
+  { value: 'P2', label: 'P2' },
+  { value: 'P3', label: 'P3' },
+  { value: 'P4', label: 'P4' },
+]
 
 export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
@@ -33,10 +43,12 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
     due_date: undefined,
   })
 
+  /* Epics query — commented out for now
   const epicsQuery = useQuery({
     queryKey: ['issues', 'epics'],
     queryFn: () => fetchIssues({ type: 'epic', limit: 100 }),
   })
+  */
 
   const mutation = useMutation({
     mutationFn: createIssue,
@@ -93,41 +105,43 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
-                <Select
-                  modal={false}
-                  value={form.type}
-                  onValueChange={(value) => setForm({ ...form, type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent portal={false}>
-                    <SelectItem value="task">Task</SelectItem>
-                    <SelectItem value="bug">Bug</SelectItem>
-                    <SelectItem value="feature">Feature</SelectItem>
-                    <SelectItem value="epic">Epic</SelectItem>
-                    <SelectItem value="chore">Chore</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-1">
+                  {typeOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, type: opt.value })}
+                      className={cn(
+                        "px-2 py-1 text-xs rounded-md border transition-colors",
+                        form.type === opt.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
-                <Select
-                  modal={false}
-                  value={form.priority}
-                  onValueChange={(value) => setForm({ ...form, priority: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent portal={false}>
-                    <SelectItem value="P0">P0 — Critical</SelectItem>
-                    <SelectItem value="P1">P1 — High</SelectItem>
-                    <SelectItem value="P2">P2 — Medium</SelectItem>
-                    <SelectItem value="P3">P3 — Low</SelectItem>
-                    <SelectItem value="P4">P4 — Minimal</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-1">
+                  {priorityOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, priority: opt.value })}
+                      className={cn(
+                        "px-2 py-1 text-xs rounded-md border transition-colors",
+                        form.priority === opt.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -141,7 +155,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               />
             </div>
 
-            {/* Parent epic */}
+            {/* Parent epic — commented out for now
             {epicsQuery.data && epicsQuery.data.issues.length > 0 && (
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Parent Epic</label>
@@ -164,8 +178,9 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                 </Select>
               </div>
             )}
+            */}
 
-            {/* Defer & Due dates */}
+            {/* Defer & Due dates — commented out for now
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Defer Until</label>
@@ -184,6 +199,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                 />
               </div>
             </div>
+            */}
 
             {mutation.error && (
               <p className="text-sm text-destructive">

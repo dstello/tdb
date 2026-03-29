@@ -22,15 +22,25 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Separator } from '~/components/ui/separator'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
 import { statuses, types, priorities } from '~/components/tasks/data'
 import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil } from 'lucide-react'
+import { cn } from '~/lib/utils'
+
+const typeOptions = [
+  { value: 'task', label: 'Task' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'feature', label: 'Feature' },
+  { value: 'epic', label: 'Epic' },
+  { value: 'chore', label: 'Chore' },
+]
+
+const priorityOptions = [
+  { value: 'P0', label: 'P0' },
+  { value: 'P1', label: 'P1' },
+  { value: 'P2', label: 'P2' },
+  { value: 'P3', label: 'P3' },
+  { value: 'P4', label: 'P4' },
+]
 
 const transitionMap: Record<string, { action: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[]> = {
   open: [
@@ -225,29 +235,43 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
-                    <Select modal={false} value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent portal={false}>
-                        <SelectItem value="task">Task</SelectItem>
-                        <SelectItem value="bug">Bug</SelectItem>
-                        <SelectItem value="feature">Feature</SelectItem>
-                        <SelectItem value="epic">Epic</SelectItem>
-                        <SelectItem value="chore">Chore</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-wrap gap-1">
+                      {typeOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, type: opt.value })}
+                          className={cn(
+                            "px-2 py-1 text-xs rounded-md border transition-colors",
+                            editForm.type === opt.value
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
-                    <Select modal={false} value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent portal={false}>
-                        <SelectItem value="P0">P0 — Critical</SelectItem>
-                        <SelectItem value="P1">P1 — High</SelectItem>
-                        <SelectItem value="P2">P2 — Medium</SelectItem>
-                        <SelectItem value="P3">P3 — Low</SelectItem>
-                        <SelectItem value="P4">P4 — Minimal</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-wrap gap-1">
+                      {priorityOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, priority: opt.value })}
+                          className={cn(
+                            "px-2 py-1 text-xs rounded-md border transition-colors",
+                            editForm.priority === opt.value
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -321,7 +345,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               </>
             )}
 
-            {/* Deferral & Due Dates */}
+            {/* Deferral & Due Dates — commented out for now
             <DeferralSection
               issue={issue}
               editingDefer={editingDefer}
@@ -340,6 +364,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               onDueCancel={() => setEditingDue(false)}
               isSaving={deferMut.isPending || dueMut.isPending}
             />
+            */}
 
             {/* Transitions */}
             {transitions.length > 0 && (
