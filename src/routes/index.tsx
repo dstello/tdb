@@ -37,6 +37,7 @@ function Dashboard() {
   const queryClient = useQueryClient()
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
   const [showClosed, setShowClosed] = useState(false)
+  const [hideSubtasks, setHideSubtasks] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -54,7 +55,11 @@ function Dashboard() {
   })
 
   const allIssues = collectIssues(monitor.data)
-  const issues = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
+  const issues = allIssues.filter((i) => {
+    if (!showClosed && i.status === 'closed') return false
+    if (hideSubtasks && i.parent_id) return false
+    return true
+  })
 
   const getFocusedIssue = useCallback((): Issue | null => {
     if (focusedRowIndex < 0 || focusedRowIndex >= issues.length) return null
@@ -157,6 +162,8 @@ function Dashboard() {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
     showClosed,
     onToggleClosed: () => setShowClosed((prev) => !prev),
+    hideSubtasks,
+    onToggleSubtasks: () => setHideSubtasks((prev) => !prev),
     showCreate,
     onShowCreate: () => setShowCreate(true),
     onCloseCreate: () => setShowCreate(false),

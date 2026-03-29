@@ -94,7 +94,7 @@ export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Epic title (min 15 characters)..."
+                placeholder="Epic title..."
                 autoFocus
               />
             </div>

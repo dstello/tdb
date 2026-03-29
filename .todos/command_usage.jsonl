@@ -16,3 +16,12 @@
 {"ts":"2026-03-28T08:31:20.784072-07:00","cmd":"serve","flags":{"port":"54323"},"session":"ses_cf1183","ok":true,"dur_ms":2081}
 {"ts":"2026-03-28T08:31:55.987643-07:00","cmd":"delete","flags":{"yes":"true"},"session":"ses_cf1183","ok":true,"dur_ms":47}
 {"ts":"2026-03-28T08:31:56.084724-07:00","cmd":"delete","flags":{"yes":"true"},"session":"ses_cf1183","ok":true,"dur_ms":54}
+{"ts":"2026-03-29T16:09:45.774994-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-03-29T16:09:45.837274-07:00","cmd":"serve","ok":true,"dur_ms":0}
+{"ts":"2026-03-29T16:09:51.207501-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-03-29T16:09:51.265682-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-03-29T16:09:51.315507-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-03-29T16:09:56.614896-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-03-29T16:10:01.527624-07:00","cmd":"help","ok":true,"dur_ms":0}
+{"ts":"2026-03-29T16:10:06.914579-07:00","cmd":"help","ok":true,"dur_ms":0}
+{"ts":"2026-03-29T16:10:12.631559-07:00","cmd":"serve","ok":true,"dur_ms":0}

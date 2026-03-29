@@ -1,5 +1,5 @@
 import { type Table } from "@tanstack/react-table"
-import { X, Plus, EyeOff, Eye } from "lucide-react"
+import { X, Plus, EyeOff, Eye, GitFork } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
@@ -66,6 +66,17 @@ export function DataTableToolbar<TData>({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {meta?.onToggleSubtasks && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={meta.onToggleSubtasks}
+              className="h-8 text-xs"
+            >
+              <GitFork className="size-3.5" />
+              {meta.hideSubtasks ? "Show Subtasks" : "Hide Subtasks"}
+            </Button>
+          )}
           {meta?.onToggleClosed && (
             <Button
               variant="outline"
