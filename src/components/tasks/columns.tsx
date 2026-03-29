@@ -12,6 +12,10 @@ export interface IssueTableMeta {
   onIssueClick?: (issueId: string) => void
   showClosed?: boolean
   onToggleClosed?: () => void
+  showCreate?: boolean
+  onShowCreate?: () => void
+  onCloseCreate?: () => void
+  focusedRowIndex?: number
 }
 
 export const columns: ColumnDef<Issue>[] = [

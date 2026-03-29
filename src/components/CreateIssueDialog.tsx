@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createIssue, fetchIssues, type CreateIssueInput } from '~/lib/api'
 import {
@@ -48,6 +48,24 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
       onClose()
     },
   })
+
+  const handleSubmit = useCallback(() => {
+    if (form.title.trim() && !mutation.isPending) {
+      mutation.mutate(form)
+    }
+  }, [form, mutation])
+
+  // Cmd+Enter to submit from anywhere in the drawer
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        handleSubmit()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleSubmit])
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
@@ -173,10 +191,11 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
           <DrawerFooter>
             <Button
-              onClick={() => mutation.mutate(form)}
+              onClick={handleSubmit}
               disabled={!form.title.trim() || mutation.isPending}
             >
               {mutation.isPending ? 'Creating...' : 'Create'}
+              <span className="ml-1 text-[10px] opacity-60">⌘↵</span>
             </Button>
             <DrawerClose asChild>
               <Button variant="outline">Cancel</Button>

@@ -106,7 +106,8 @@ export function DataTable<TData, TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="border-b border-border/40 transition-colors cursor-pointer"
+                    data-focused={row.index === (meta as IssueTableMeta | undefined)?.focusedRowIndex}
+                    className="border-b border-border/40 transition-colors cursor-pointer data-[focused=true]:bg-muted/50"
                     onClick={(e) => {
                       // Don't trigger row click if clicking checkbox, button, or actions
                       const target = e.target as HTMLElement

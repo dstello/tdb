@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { type Table } from "@tanstack/react-table"
 import { X, Plus, EyeOff, Eye } from "lucide-react"
 
@@ -19,7 +18,6 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
-  const [showCreate, setShowCreate] = useState(false)
   const meta = table.options.meta as IssueTableMeta | undefined
 
   return (
@@ -79,14 +77,14 @@ export function DataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Button size="sm" onClick={() => meta?.onShowCreate?.()}>
             <Plus />
             New Issue
           </Button>
         </div>
       </div>
-      {showCreate && (
-        <CreateIssueDrawer onClose={() => setShowCreate(false)} />
+      {meta?.showCreate && (
+        <CreateIssueDrawer onClose={() => meta?.onCloseCreate?.()} />
       )}
     </>
   )
