@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -23,7 +23,7 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Separator } from '~/components/ui/separator'
 import { statuses, types, priorities } from '~/components/tasks/data'
-import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil } from 'lucide-react'
+import { ExternalLink, X, CalendarClock, CalendarCheck, AlertCircle, Pencil, Play, Eye, ShieldBan, XCircle, Check, RotateCcw, LockOpen } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 const typeOptions = [
@@ -42,29 +42,29 @@ const priorityOptions = [
   { value: 'P4', label: 'P4' },
 ]
 
-const transitionMap: Record<string, { action: string; label: string; variant: 'secondary' | 'ghost'; className?: string }[]> = {
+const transitionMap: Record<string, { action: string; label: string; icon: React.ComponentType<{ className?: string }>; className: string }[]> = {
   open: [
-    { action: 'start', label: 'Start', variant: 'secondary' },
-    { action: 'review', label: 'Review', variant: 'ghost' },
-    { action: 'block', label: 'Block', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
-    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
+    { action: 'start', label: 'Start', icon: Play, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { action: 'review', label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { action: 'block', label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   in_progress: [
-    { action: 'review', label: 'Review', variant: 'secondary' },
-    { action: 'block', label: 'Block', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
-    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
+    { action: 'review', label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { action: 'block', label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   in_review: [
-    { action: 'approve', label: 'Approve', variant: 'secondary' },
-    { action: 'reject', label: 'Reject', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
-    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
+    { action: 'approve', label: 'Approve', icon: Check, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { action: 'reject', label: 'Reject', icon: RotateCcw, className: 'text-orange-400 hover:bg-orange-400/10' },
+    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   blocked: [
-    { action: 'unblock', label: 'Unblock', variant: 'secondary' },
-    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
+    { action: 'unblock', label: 'Unblock', icon: LockOpen, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { action: 'close', label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
   ],
   closed: [
-    { action: 'reopen', label: 'Reopen', variant: 'secondary' },
+    { action: 'reopen', label: 'Reopen', icon: RotateCcw, className: 'text-blue-400 hover:bg-blue-400/10' },
   ],
 }
 
@@ -370,16 +370,17 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {transitions.length > 0 && (
               <>
                 <Separator />
-                <div className="flex gap-1.5 flex-wrap">
+                <div className="flex gap-1 flex-wrap">
                   {transitions.map((t) => (
                     <Button
                       key={t.action}
-                      variant={t.variant}
+                      variant="ghost"
                       size="sm"
-                      className={t.className}
+                      className={cn("gap-1.5", t.className)}
                       onClick={() => transitionMut.mutate({ action: t.action })}
                       disabled={transitionMut.isPending}
                     >
+                      <t.icon className="size-3.5" />
                       {t.label}
                     </Button>
                   ))}
