@@ -93,7 +93,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
           <div className="space-y-4 px-4 pb-2">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Title</label>
+              <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Title</label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -104,7 +104,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
+                <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Type</label>
                 <div className="flex flex-wrap gap-1">
                   {typeOptions.map((opt) => (
                     <button
@@ -112,10 +112,10 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                       type="button"
                       onClick={() => setForm({ ...form, type: opt.value })}
                       className={cn(
-                        "px-2 py-1 text-xs rounded-md border transition-colors",
+                        "px-2.5 py-1 text-xs rounded-md transition-colors",
                         form.type === opt.value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          ? "bg-foreground/10 text-foreground font-medium"
+                          : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5"
                       )}
                     >
                       {opt.label}
@@ -124,7 +124,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
+                <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Priority</label>
                 <div className="flex flex-wrap gap-1">
                   {priorityOptions.map((opt) => (
                     <button
@@ -132,10 +132,10 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                       type="button"
                       onClick={() => setForm({ ...form, priority: opt.value })}
                       className={cn(
-                        "px-2 py-1 text-xs rounded-md border transition-colors",
+                        "px-2.5 py-1 text-xs rounded-md transition-colors",
                         form.priority === opt.value
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                          ? "bg-foreground/10 text-foreground font-medium"
+                          : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5"
                       )}
                     >
                       {opt.label}
@@ -146,7 +146,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Description</label>
+              <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Description</label>
               <Textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -214,10 +214,10 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               disabled={!form.title.trim() || mutation.isPending}
             >
               {mutation.isPending ? 'Creating...' : 'Create'}
-              <span className="ml-1 text-[10px] opacity-60">⌘↵</span>
+              <span className="ml-1 text-[10px] opacity-50">⌘↵</span>
             </Button>
             <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="ghost" className="text-muted-foreground">Cancel</Button>
             </DrawerClose>
           </DrawerFooter>
         </div>

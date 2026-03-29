@@ -42,29 +42,29 @@ const priorityOptions = [
   { value: 'P4', label: 'P4' },
 ]
 
-const transitionMap: Record<string, { action: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[]> = {
+const transitionMap: Record<string, { action: string; label: string; variant: 'secondary' | 'ghost'; className?: string }[]> = {
   open: [
-    { action: 'start', label: 'Start', variant: 'default' },
-    { action: 'review', label: 'Review', variant: 'secondary' },
-    { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'start', label: 'Start', variant: 'secondary' },
+    { action: 'review', label: 'Review', variant: 'ghost' },
+    { action: 'block', label: 'Block', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
+    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
   ],
   in_progress: [
-    { action: 'review', label: 'Review', variant: 'default' },
-    { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'review', label: 'Review', variant: 'secondary' },
+    { action: 'block', label: 'Block', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
+    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
   ],
   in_review: [
-    { action: 'approve', label: 'Approve', variant: 'default' },
-    { action: 'reject', label: 'Reject', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'approve', label: 'Approve', variant: 'secondary' },
+    { action: 'reject', label: 'Reject', variant: 'ghost', className: 'text-destructive/70 hover:text-destructive' },
+    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
   ],
   blocked: [
-    { action: 'unblock', label: 'Unblock', variant: 'default' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'unblock', label: 'Unblock', variant: 'secondary' },
+    { action: 'close', label: 'Close', variant: 'ghost', className: 'text-muted-foreground' },
   ],
   closed: [
-    { action: 'reopen', label: 'Reopen', variant: 'default' },
+    { action: 'reopen', label: 'Reopen', variant: 'secondary' },
   ],
 }
 
@@ -221,7 +221,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {isEditing && editForm ? (
               <div className="flex flex-col gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Title</label>
+                  <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Title</label>
                   <Input
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
@@ -234,7 +234,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
+                    <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Type</label>
                     <div className="flex flex-wrap gap-1">
                       {typeOptions.map((opt) => (
                         <button
@@ -242,10 +242,10 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                           type="button"
                           onClick={() => setEditForm({ ...editForm, type: opt.value })}
                           className={cn(
-                            "px-2 py-1 text-xs rounded-md border transition-colors",
+                            "px-2.5 py-1 text-xs rounded-md transition-colors",
                             editForm.type === opt.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                              ? "bg-foreground/10 text-foreground font-medium"
+                              : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5"
                           )}
                         >
                           {opt.label}
@@ -254,7 +254,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
+                    <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Priority</label>
                     <div className="flex flex-wrap gap-1">
                       {priorityOptions.map((opt) => (
                         <button
@@ -262,10 +262,10 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                           type="button"
                           onClick={() => setEditForm({ ...editForm, priority: opt.value })}
                           className={cn(
-                            "px-2 py-1 text-xs rounded-md border transition-colors",
+                            "px-2.5 py-1 text-xs rounded-md transition-colors",
                             editForm.priority === opt.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                              ? "bg-foreground/10 text-foreground font-medium"
+                              : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5"
                           )}
                         >
                           {opt.label}
@@ -275,7 +275,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Description</label>
+                  <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Description</label>
                   <Textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -291,12 +291,12 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     {editMut.error instanceof Error ? editMut.error.message : 'Failed to save'}
                   </p>
                 )}
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <Button size="sm" onClick={saveEdit} disabled={!editForm.title.trim() || editMut.isPending}>
                     {editMut.isPending ? 'Saving...' : 'Save'}
-                    <span className="ml-1 text-[10px] opacity-60">⌘↵</span>
+                    <span className="ml-1 text-[10px] opacity-50">⌘↵</span>
                   </Button>
-                  <Button size="sm" variant="outline" onClick={cancelEdit}>Cancel</Button>
+                  <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={cancelEdit}>Cancel</Button>
                 </div>
               </div>
             ) : (
@@ -370,12 +370,13 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {transitions.length > 0 && (
               <>
                 <Separator />
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-1.5 flex-wrap">
                   {transitions.map((t) => (
                     <Button
                       key={t.action}
                       variant={t.variant}
                       size="sm"
+                      className={t.className}
                       onClick={() => transitionMut.mutate({ action: t.action })}
                       disabled={transitionMut.isPending}
                     >
@@ -391,7 +392,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-1">
+                  <h4 className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-1">
                     Dependencies
                   </h4>
                   {data.dependencies.length > 0 && (
@@ -429,7 +430,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2">
+                  <h4 className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-2">
                     Activity
                   </h4>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -452,7 +453,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             {/* Comments */}
             <Separator />
             <div>
-              <h4 className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest mb-2">
+              <h4 className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-2">
                 Comments {data && data.comments.length > 0 && `(${data.comments.length})`}
               </h4>
               {data && data.comments.length > 0 && (
@@ -478,6 +479,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                   className="flex-1"
                 />
                 <Button
+                  variant="secondary"
                   size="sm"
                   onClick={() => commentMut.mutate()}
                   disabled={!commentText.trim() || commentMut.isPending}
@@ -492,7 +494,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-destructive hover:text-destructive w-fit"
+              className="text-destructive/60 hover:text-destructive w-fit"
               onClick={() => {
                 if (confirm('Delete this issue?')) deleteMut.mutate()
               }}
