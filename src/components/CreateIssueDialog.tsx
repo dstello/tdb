@@ -94,6 +94,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
                 <Select
+                  modal={false}
                   value={form.type}
                   onValueChange={(value) => setForm({ ...form, type: value })}
                 >
@@ -112,6 +113,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
                 <Select
+                  modal={false}
                   value={form.priority}
                   onValueChange={(value) => setForm({ ...form, priority: value })}
                 >
@@ -144,6 +146,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Parent Epic</label>
                 <Select
+                  modal={false}
                   value={form.parent_id ?? '_none'}
                   onValueChange={(value) => setForm({ ...form, parent_id: value === '_none' ? undefined : value })}
                 >

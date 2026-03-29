@@ -225,7 +225,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
-                    <Select value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
+                    <Select modal={false} value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent portal={false}>
                         <SelectItem value="task">Task</SelectItem>
@@ -238,7 +238,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
-                    <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
+                    <Select modal={false} value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent portal={false}>
                         <SelectItem value="P0">P0 — Critical</SelectItem>
