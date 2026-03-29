@@ -28,6 +28,7 @@ interface DataTableFacetedFilterProps<TData, TValue> {
     label: string
     value: string
     icon?: React.ComponentType<{ className?: string }>
+    iconClassName?: string
   }[]
 }
 
@@ -125,7 +126,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <Check className="size-3.5 text-primary-foreground" />
                     </div>
                     {option.icon && (
-                      <option.icon className="size-4 text-muted-foreground" />
+                      <option.icon className={cn("size-4", option.iconClassName ?? "text-muted-foreground")} />
                     )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (

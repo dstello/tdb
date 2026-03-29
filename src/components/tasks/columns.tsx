@@ -9,6 +9,8 @@ import { DataTableRowActions } from "./data-table-row-actions"
 
 export interface IssueTableMeta {
   onIssueClick?: (issueId: string) => void
+  showClosed?: boolean
+  onToggleClosed?: () => void
 }
 
 export const columns: ColumnDef<Issue>[] = [
@@ -62,7 +64,7 @@ export const columns: ColumnDef<Issue>[] = [
       return (
         <div className="flex items-center gap-2.5">
           {issueType && (
-            <span className="text-muted-foreground shrink-0" title={issueType.label}>
+            <span className={`shrink-0 ${issueType.iconClassName ?? 'text-muted-foreground'}`} title={issueType.label}>
               <issueType.icon className="size-3.5" />
             </span>
           )}

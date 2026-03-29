@@ -33,6 +33,7 @@ function collectIssues(data: ReturnType<typeof useQuery<Awaited<ReturnType<typeo
 
 function Dashboard() {
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
+  const [showClosed, setShowClosed] = useState(false)
 
   const monitor = useQuery({
     queryKey: ['monitor', true],
@@ -46,10 +47,13 @@ function Dashboard() {
     refetchInterval: 60_000,
   })
 
-  const issues = collectIssues(monitor.data)
+  const allIssues = collectIssues(monitor.data)
+  const issues = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
 
   const tableMeta: IssueTableMeta = {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
+    showClosed,
+    onToggleClosed: () => setShowClosed((prev) => !prev),
   }
 
   return (

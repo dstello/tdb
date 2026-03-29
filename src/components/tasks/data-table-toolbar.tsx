@@ -1,14 +1,15 @@
 import { useState } from "react"
 import { type Table } from "@tanstack/react-table"
-import { X, Plus } from "lucide-react"
+import { X, Plus, EyeOff, Eye } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 
-import { statuses, types, priorities } from "./data"
+import { statuses, filterStatuses, types, priorities } from "./data"
 import { CreateIssueDrawer } from "~/components/CreateIssueDialog"
+import type { IssueTableMeta } from "./columns"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -19,6 +20,7 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
   const [showCreate, setShowCreate] = useState(false)
+  const meta = table.options.meta as IssueTableMeta | undefined
 
   return (
     <>
@@ -36,7 +38,7 @@ export function DataTableToolbar<TData>({
             <DataTableFacetedFilter
               column={table.getColumn("status")}
               title="Status"
-              options={statuses}
+              options={filterStatuses}
             />
           )}
           {table.getColumn("type") && (
@@ -65,6 +67,17 @@ export function DataTableToolbar<TData>({
           )}
         </div>
         <div className="flex items-center gap-2">
+          {meta?.onToggleClosed && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={meta.onToggleClosed}
+              className="h-8 text-xs"
+            >
+              {meta.showClosed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              {meta.showClosed ? "Hide Closed" : "Show Closed"}
+            </Button>
+          )}
           <DataTableViewOptions table={table} />
           <Button size="sm" onClick={() => setShowCreate(true)}>
             <Plus />
