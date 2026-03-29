@@ -227,7 +227,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Type</label>
                     <Select value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent portal={false}>
                         <SelectItem value="task">Task</SelectItem>
                         <SelectItem value="bug">Bug</SelectItem>
                         <SelectItem value="feature">Feature</SelectItem>
@@ -240,7 +240,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Priority</label>
                     <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent portal={false}>
                         <SelectItem value="P0">P0 — Critical</SelectItem>
                         <SelectItem value="P1">P1 — High</SelectItem>
                         <SelectItem value="P2">P2 — Medium</SelectItem>

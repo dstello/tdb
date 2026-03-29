@@ -100,7 +100,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent portal={false}>
                     <SelectItem value="task">Task</SelectItem>
                     <SelectItem value="bug">Bug</SelectItem>
                     <SelectItem value="feature">Feature</SelectItem>
@@ -118,7 +118,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent portal={false}>
                     <SelectItem value="P0">P0 — Critical</SelectItem>
                     <SelectItem value="P1">P1 — High</SelectItem>
                     <SelectItem value="P2">P2 — Medium</SelectItem>
@@ -150,7 +150,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                   <SelectTrigger>
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent portal={false}>
                     <SelectItem value="_none">None</SelectItem>
                     {epicsQuery.data.issues.map((epic) => (
                       <SelectItem key={epic.id} value={epic.id}>
