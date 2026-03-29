@@ -243,12 +243,12 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     {data.logs.map((log) => (
                       <div key={log.id} className="flex items-start gap-2 text-xs">
                         <span className="text-muted-foreground shrink-0">
-                          {new Date(log.created_at).toLocaleDateString()}
+                          {new Date(log.timestamp).toLocaleDateString()}
                         </span>
                         <Badge variant="outline" className="text-[10px] px-1">
-                          {log.entry_type}
+                          {log.type}
                         </Badge>
-                        <span className="truncate">{log.summary}</span>
+                        <span className="truncate">{log.message}</span>
                       </div>
                     ))}
                   </div>

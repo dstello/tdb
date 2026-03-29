@@ -74,9 +74,10 @@ export interface IssueDetail {
     id: string
     issue_id: string
     session_id: string
-    entry_type: string
-    summary: string
-    created_at: string
+    work_session_id: string
+    type: string
+    message: string
+    timestamp: string
   }>
   comments: Array<{
     id: string

@@ -5,3 +5,14 @@
 {"ts":"2026-03-27T19:33:18.23157-07:00","cmd":"serve","flags":{"cors":"http://localhost:3001","port":"6969"},"ok":true,"dur_ms":5234084}
 {"ts":"2026-03-28T08:21:47.085052-07:00","cmd":"serve","ok":true,"dur_ms":0}
 {"ts":"2026-03-28T08:23:14.093403-07:00","cmd":"serve","ok":true,"dur_ms":0}
+{"ts":"2026-03-28T08:28:53.421166-07:00","cmd":"serve","session":"ses_cf1183","ok":false,"dur_ms":17,"err":"listen localhost:54322: listen tcp 127.0.0.1:54322: bind: address already in use"}
+{"ts":"2026-03-28T08:28:42.353741-07:00","cmd":"serve","flags":{"port":"54322"},"session":"ses_cf1183","ok":true,"dur_ms":21628}
+{"ts":"2026-03-28T08:29:15.176654-07:00","cmd":"serve","session":"ses_cf1183","ok":false,"dur_ms":17,"err":"write port file: td serve already running on port 54322 (pid 64550)"}
+{"ts":"2026-03-28T08:29:05.009599-07:00","cmd":"serve","flags":{"port":"54322"},"session":"ses_cf1183","ok":true,"dur_ms":16702}
+{"ts":"2026-03-28T08:29:40.387022-07:00","cmd":"list","flags":{"status":"[all]"},"session":"ses_cf1183","ok":true,"dur_ms":5}
+{"ts":"2026-03-28T08:29:47.146266-07:00","cmd":"serve","session":"ses_cf1183","ok":false,"dur_ms":10,"err":"listen localhost:54323: listen tcp 127.0.0.1:54323: bind: address already in use"}
+{"ts":"2026-03-28T08:29:30.610287-07:00","cmd":"serve","flags":{"port":"54323"},"ok":true,"dur_ms":87244}
+{"ts":"2026-03-28T08:30:58.87877-07:00","cmd":"serve","flags":{"port":"54323"},"session":"ses_cf1183","ok":true,"dur_ms":2121}
+{"ts":"2026-03-28T08:31:20.784072-07:00","cmd":"serve","flags":{"port":"54323"},"session":"ses_cf1183","ok":true,"dur_ms":2081}
+{"ts":"2026-03-28T08:31:55.987643-07:00","cmd":"delete","flags":{"yes":"true"},"session":"ses_cf1183","ok":true,"dur_ms":47}
+{"ts":"2026-03-28T08:31:56.084724-07:00","cmd":"delete","flags":{"yes":"true"},"session":"ses_cf1183","ok":true,"dur_ms":54}

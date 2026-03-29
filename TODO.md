@@ -1,2 +1,3 @@
+- [ ] add toggle to hide completed tasks
 - [ ] add support for "epics" and "swimlanes"
-- [ ]
+- [x] fix invalid date in activity
