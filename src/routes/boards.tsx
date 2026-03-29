@@ -12,6 +12,9 @@ import {
 } from '~/lib/api'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
+import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { columns, type IssueTableMeta } from '~/components/tasks/columns'
+import { DataTable } from '~/components/tasks/data-table'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
@@ -48,6 +51,7 @@ function BoardsPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
   const [showClosed, setShowClosed] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('board')
 
   const boardsQuery = useQuery({
     queryKey: ['boards'],
@@ -77,10 +81,17 @@ function BoardsPage() {
 
   const boardIssues = boardDetailQuery.data?.issues ?? []
   const issues: Issue[] = boardIssues.map((bi) => bi.issue)
+  const filteredIssues = showClosed ? issues : issues.filter((i) => i.status !== 'closed')
 
   const visibleColumns = showClosed
     ? swimlaneColumns
     : swimlaneColumns.filter((col) => col.status !== 'closed')
+
+  const tableMeta: IssueTableMeta = {
+    onIssueClick: (issueId) => setSelectedIssueId(issueId),
+    showClosed,
+    onToggleClosed: () => setShowClosed((prev) => !prev),
+  }
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4">
@@ -91,6 +102,7 @@ function BoardsPage() {
           <h2 className="text-lg font-medium tracking-tight">Boards</h2>
         </div>
         <div className="flex items-center gap-2">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           <Button
             variant="ghost"
             size="sm"
@@ -170,15 +182,19 @@ function BoardsPage() {
         </div>
       )}
 
-      {/* Swimlane board */}
+      {/* Board/List content */}
       {selectedBoardId && (
-        <SwimlaneBoardView
-          issues={issues}
-          onIssueClick={(issueId) => setSelectedIssueId(issueId)}
-          columns={[...visibleColumns]}
-          isLoading={boardDetailQuery.isLoading}
-          emptyMessage="No issues match this board's query."
-        />
+        viewMode === 'board' ? (
+          <SwimlaneBoardView
+            issues={issues}
+            onIssueClick={(issueId) => setSelectedIssueId(issueId)}
+            columns={[...visibleColumns]}
+            isLoading={boardDetailQuery.isLoading}
+            emptyMessage="No issues match this board's query."
+          />
+        ) : (
+          <DataTable data={filteredIssues} columns={columns} meta={tableMeta} />
+        )
       )}
 
       {/* Quick view drawer */}

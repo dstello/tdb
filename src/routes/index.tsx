@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMonitor, fetchStats, deleteIssue, type Issue } from '~/lib/api'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
+import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
+import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { KeyboardShortcutsDialog } from '~/components/KeyboardShortcuts'
 
@@ -39,6 +41,7 @@ function Dashboard() {
   const [showClosed, setShowClosed] = useState(false)
   const [hideSubtasks, setHideSubtasks] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [showShortcuts, setShowShortcuts] = useState(false)
 
@@ -162,15 +165,17 @@ function Dashboard() {
     return () => window.removeEventListener('keydown', handler)
   }, [issues, focusedRowIndex, selectedIssueId, showCreate, getFocusedIssue, navigate, queryClient])
 
+  const handleIssueClick = useCallback((issueId: string) => {
+    const issue = issues.find((i) => i.id === issueId)
+    if (issue?.type === 'epic') {
+      navigate({ to: '/epics/$id', params: { id: issueId } })
+    } else {
+      setSelectedIssueId(issueId)
+    }
+  }, [issues, navigate])
+
   const tableMeta: IssueTableMeta = {
-    onIssueClick: (issueId) => {
-      const issue = issues.find((i) => i.id === issueId)
-      if (issue?.type === 'epic') {
-        navigate({ to: '/epics/$id', params: { id: issueId } })
-      } else {
-        setSelectedIssueId(issueId)
-      }
-    },
+    onIssueClick: handleIssueClick,
     showClosed,
     onToggleClosed: () => setShowClosed((prev) => !prev),
     hideSubtasks,
@@ -191,6 +196,7 @@ function Dashboard() {
               {stats.data.total} total · {Math.round(stats.data.completion_rate * 100)}% done{stats.data.created_today > 0 ? ` · +${stats.data.created_today} today` : ''}
             </p>
           )}
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           <button
             onClick={() => setShowShortcuts(true)}
             className="rounded border border-border/40 bg-muted/30 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60 transition-colors"
@@ -209,7 +215,17 @@ function Dashboard() {
         </div>
       )}
 
-      <DataTable data={issues} columns={columns} meta={tableMeta} />
+      {viewMode === 'list' ? (
+        <DataTable data={issues} columns={columns} meta={tableMeta} />
+      ) : (
+        <SwimlaneBoardView
+          issues={issues}
+          onIssueClick={handleIssueClick}
+          showClosed={showClosed}
+          isLoading={monitor.isLoading}
+          emptyMessage="No issues yet."
+        />
+      )}
 
       {selectedIssueId && (
         <IssueQuickView

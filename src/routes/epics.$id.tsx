@@ -26,10 +26,9 @@ import {
   ShieldBan,
   XCircle,
   LockOpen,
-  LayoutGrid,
-  List,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
+import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
 
 export const Route = createFileRoute('/epics/$id')({
   component: EpicDetailPage,
@@ -55,8 +54,6 @@ const transitionMap: Record<string, { actions: string[]; label: string; icon: ty
     { actions: ['reopen'], label: 'Reopen', icon: RotateCcw, className: 'text-blue-400 hover:bg-blue-400/10' },
   ],
 }
-
-type ViewMode = 'board' | 'list'
 
 function EpicDetailPage() {
   const { id } = Route.useParams()
@@ -216,33 +213,7 @@ function EpicDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <div className="flex items-center rounded-md border border-border/60 p-0.5">
-            <button
-              onClick={() => setViewMode('board')}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
-                viewMode === 'board'
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <LayoutGrid className="size-3.5" />
-              Board
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors",
-                viewMode === 'list'
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <List className="size-3.5" />
-              List
-            </button>
-          </div>
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           <Button size="sm" variant="secondary" onClick={() => setShowCreate(true)}>
             <Plus className="size-3.5 mr-1" />
             Add Subtask
