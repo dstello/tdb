@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createIssue, type CreateIssueInput } from '~/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createIssue, fetchIssues, type CreateIssueInput } from '~/lib/api'
 import {
   Drawer,
   DrawerClose,
@@ -28,6 +28,14 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
     type: 'task',
     priority: 'P2',
     description: '',
+    parent_id: undefined,
+    defer_until: undefined,
+    due_date: undefined,
+  })
+
+  const epicsQuery = useQuery({
+    queryKey: ['issues', 'epics'],
+    queryFn: () => fetchIssues({ type: 'epic', limit: 100 }),
   })
 
   const mutation = useMutation({
@@ -35,6 +43,7 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['monitor'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['boards'] })
       setForm({ title: '', type: 'task', priority: 'P2', description: '' })
       onClose()
     },
@@ -110,6 +119,49 @@ export function CreateIssueDrawer({ onClose }: { onClose: () => void }) {
                 rows={4}
                 placeholder="Optional description..."
               />
+            </div>
+
+            {/* Parent epic */}
+            {epicsQuery.data && epicsQuery.data.issues.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Parent Epic</label>
+                <Select
+                  value={form.parent_id ?? '_none'}
+                  onValueChange={(value) => setForm({ ...form, parent_id: value === '_none' ? undefined : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">None</SelectItem>
+                    {epicsQuery.data.issues.map((epic) => (
+                      <SelectItem key={epic.id} value={epic.id}>
+                        {epic.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Defer & Due dates */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Defer Until</label>
+                <Input
+                  type="date"
+                  value={form.defer_until ?? ''}
+                  onChange={(e) => setForm({ ...form, defer_until: e.target.value || undefined })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-widest">Due Date</label>
+                <Input
+                  type="date"
+                  value={form.due_date ?? ''}
+                  onChange={(e) => setForm({ ...form, due_date: e.target.value || undefined })}
+                />
+              </div>
             </div>
 
             {mutation.error && (

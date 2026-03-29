@@ -129,6 +129,43 @@ export interface CreateIssueInput {
   due_date?: string | null
 }
 
+export interface Board {
+  id: string
+  name: string
+  query: string
+  is_builtin: boolean
+  view_mode: string
+  last_viewed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface BoardIssue {
+  board_id: string
+  category: string
+  has_position: boolean
+  issue: Issue
+  position: number
+}
+
+export interface BoardDetail {
+  board: Board
+  issues: BoardIssue[]
+}
+
+export interface CreateBoardInput {
+  name: string
+  query?: string
+}
+
+export interface IssueListData {
+  issues: Issue[]
+  total: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
 // --- Endpoints ---
 
 export function fetchMonitor(params?: {
@@ -208,6 +245,55 @@ export function deleteComment(issueId: string, commentId: string) {
 // SSE
 export function getEventsUrl() {
   return `${API_BASE}/v1/events`
+}
+
+// --- Boards ---
+
+export function fetchBoards() {
+  return request<{ boards: Board[] }>('/v1/boards')
+}
+
+export function fetchBoard(id: string) {
+  return request<BoardDetail>(`/v1/boards/${id}`)
+}
+
+export function createBoard(input: CreateBoardInput) {
+  return request<{ board: Board }>('/v1/boards', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateBoard(id: string, fields: Partial<CreateBoardInput>) {
+  return request<{ board: Board }>(`/v1/boards/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(fields),
+  })
+}
+
+export function deleteBoard(id: string) {
+  return request<{ deleted: boolean }>(`/v1/boards/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+// --- Issues List (filtered) ---
+
+export function fetchIssues(params?: {
+  type?: string
+  parent?: string
+  status?: string
+  limit?: number
+  offset?: number
+}) {
+  const sp = new URLSearchParams()
+  if (params?.type) sp.set('type', params.type)
+  if (params?.parent) sp.set('parent', params.parent)
+  if (params?.status) sp.set('status', params.status)
+  if (params?.limit) sp.set('limit', String(params.limit))
+  if (params?.offset) sp.set('offset', String(params.offset))
+  const qs = sp.toString()
+  return request<IssueListData>(`/v1/issues${qs ? `?${qs}` : ''}`)
 }
 
 export { API_BASE }

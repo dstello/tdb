@@ -55,6 +55,12 @@ function RootComponent() {
               >
                 Issues
               </Link>
+              <Link
+                to="/boards"
+                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+              >
+                Boards
+              </Link>
             </div>
           </nav>
           <main className="max-w-7xl mx-auto px-6 sm:px-8 py-8">

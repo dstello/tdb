@@ -6,12 +6,14 @@ import {
   transitionIssue,
   addComment,
   deleteIssue,
+  updateIssue,
 } from '~/lib/api'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 import { statuses, types, priorities } from '~/components/tasks/data'
+import { CalendarClock, CalendarCheck, AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/issues/$id')({
   component: IssueDetailPage,
@@ -48,6 +50,10 @@ function IssueDetailPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [commentText, setCommentText] = useState('')
+  const [editingDefer, setEditingDefer] = useState(false)
+  const [editingDue, setEditingDue] = useState(false)
+  const [deferValue, setDeferValue] = useState('')
+  const [dueValue, setDueValue] = useState('')
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['issue', id],
@@ -73,6 +79,24 @@ function IssueDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries()
       router.navigate({ to: '/' })
+    },
+  })
+
+  const deferMut = useMutation({
+    mutationFn: (date: string | null) =>
+      updateIssue(id, { defer_until: date === '' ? null : date }),
+    onSuccess: () => {
+      setEditingDefer(false)
+      queryClient.invalidateQueries({ queryKey: ['issue', id] })
+    },
+  })
+
+  const dueMut = useMutation({
+    mutationFn: (date: string | null) =>
+      updateIssue(id, { due_date: date === '' ? null : date }),
+    onSuccess: () => {
+      setEditingDue(false)
+      queryClient.invalidateQueries({ queryKey: ['issue', id] })
     },
   })
 
@@ -140,7 +164,6 @@ function IssueDetailPage() {
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
           {issue.points && <span>{issue.points} pts</span>}
           {issue.sprint && <span>Sprint: {issue.sprint}</span>}
-          {issue.due_date && <span>Due: {issue.due_date}</span>}
           {issue.labels?.length > 0 && (
             <span className="flex gap-1">
               {issue.labels.map((l) => (
@@ -151,6 +174,100 @@ function IssueDetailPage() {
             </span>
           )}
           <span>Created: {new Date(issue.created_at).toLocaleDateString()}</span>
+        </div>
+
+        {/* Deferral & Due Date */}
+        <div className="flex flex-col gap-2 mt-4">
+          {/* Defer */}
+          <div className="flex items-center gap-2 text-xs">
+            <CalendarClock className="size-3.5 text-muted-foreground shrink-0" />
+            {editingDefer ? (
+              <div className="flex items-center gap-1.5">
+                <Input
+                  type="date"
+                  value={deferValue}
+                  onChange={(e) => setDeferValue(e.target.value)}
+                  className="h-6 text-xs w-40"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') deferMut.mutate(deferValue || null)
+                    if (e.key === 'Escape') setEditingDefer(false)
+                  }}
+                />
+                <Button size="xs" onClick={() => deferMut.mutate(deferValue || null)} disabled={deferMut.isPending}>Save</Button>
+                <Button size="xs" variant="ghost" onClick={() => setEditingDefer(false)}>✕</Button>
+              </div>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                {(() => {
+                  const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
+                  const isDeferred = deferUntil && deferUntil > new Date()
+                  if (isDeferred) return <span className="text-muted-foreground">Deferred until {deferUntil.toLocaleDateString()}</span>
+                  if (issue.defer_until) return <span className="text-muted-foreground">Was deferred until {new Date(issue.defer_until).toLocaleDateString()}</span>
+                  return <span className="text-muted-foreground/60">No deferral</span>
+                })()}
+                <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px]"
+                  onClick={() => { setEditingDefer(true); setDeferValue(issue.defer_until ?? '') }}>
+                  {issue.defer_until ? 'Edit' : 'Set'}
+                </Button>
+                {issue.defer_until && (
+                  <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px] text-destructive"
+                    onClick={() => deferMut.mutate(null)} disabled={deferMut.isPending}>Clear</Button>
+                )}
+              </span>
+            )}
+          </div>
+
+          {/* Due */}
+          <div className="flex items-center gap-2 text-xs">
+            {(() => {
+              const dueDate = issue.due_date ? new Date(issue.due_date) : null
+              const isOverdue = dueDate && dueDate < new Date()
+              const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - Date.now() < 3 * 86400000
+              return (
+                <>
+                  {isOverdue ? (
+                    <AlertCircle className="size-3.5 text-destructive shrink-0" />
+                  ) : (
+                    <CalendarCheck className={`size-3.5 shrink-0 ${isDueSoon ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                  )}
+                  {editingDue ? (
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="date"
+                        value={dueValue}
+                        onChange={(e) => setDueValue(e.target.value)}
+                        className="h-6 text-xs w-40"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') dueMut.mutate(dueValue || null)
+                          if (e.key === 'Escape') setEditingDue(false)
+                        }}
+                      />
+                      <Button size="xs" onClick={() => dueMut.mutate(dueValue || null)} disabled={dueMut.isPending}>Save</Button>
+                      <Button size="xs" variant="ghost" onClick={() => setEditingDue(false)}>✕</Button>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      {dueDate ? (
+                        <span className={isOverdue ? 'text-destructive font-medium' : isDueSoon ? 'text-amber-500 font-medium' : 'text-muted-foreground'}>
+                          Due {dueDate.toLocaleDateString()}{isOverdue && ' (overdue)'}{isDueSoon && ' (due soon)'}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60">No due date</span>
+                      )}
+                      <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px]"
+                        onClick={() => { setEditingDue(true); setDueValue(issue.due_date ?? '') }}>
+                        {issue.due_date ? 'Edit' : 'Set'}
+                      </Button>
+                      {issue.due_date && (
+                        <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px] text-destructive"
+                          onClick={() => dueMut.mutate(null)} disabled={dueMut.isPending}>Clear</Button>
+                      )}
+                    </span>
+                  )}
+                </>
+              )
+            })()}
+          </div>
         </div>
 
         {/* Transitions */}

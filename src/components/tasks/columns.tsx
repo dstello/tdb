@@ -6,6 +6,7 @@ import { types, statuses, priorities } from "./data"
 import { type Issue } from "~/lib/api"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
+import { CalendarClock, AlertCircle } from "lucide-react"
 
 export interface IssueTableMeta {
   onIssueClick?: (issueId: string) => void
@@ -148,6 +149,43 @@ export const columns: ColumnDef<Issue>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
+  },
+  {
+    accessorKey: "due_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Due" />
+    ),
+    cell: ({ row }) => {
+      const issue = row.original
+      const dueDate = issue.due_date ? new Date(issue.due_date) : null
+      const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
+      const now = new Date()
+      const isOverdue = dueDate && dueDate < now
+      const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - now.getTime() < 3 * 86400000
+      const isDeferred = deferUntil && deferUntil > now
+
+      if (!dueDate && !isDeferred) return null
+
+      return (
+        <div className="flex flex-col gap-0.5">
+          {dueDate && (
+            <span className={`inline-flex items-center gap-1 text-xs ${
+              isOverdue ? 'text-destructive font-medium' : isDueSoon ? 'text-amber-500' : 'text-muted-foreground'
+            }`}>
+              {isOverdue && <AlertCircle className="size-3" />}
+              {dueDate.toLocaleDateString()}
+            </span>
+          )}
+          {isDeferred && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/70">
+              <CalendarClock className="size-2.5" />
+              Deferred
+            </span>
+          )}
+        </div>
+      )
+    },
+    enableSorting: true,
   },
   {
     id: "actions",
