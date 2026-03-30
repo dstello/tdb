@@ -344,12 +344,9 @@ function IssueDetailPage() {
           <div className="space-y-2">
             {logs.map((log) => (
               <div key={log.id} className="flex items-start gap-2 text-xs">
-                <span className="text-muted-foreground shrink-0">
-                  {new Date(log.timestamp).toLocaleString()}
+                <span className="text-muted-foreground/60 shrink-0 tabular-nums">
+                  {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
-                <Badge variant="outline" className="text-xs">
-                  {log.type}
-                </Badge>
                 <span>{log.message}</span>
               </div>
             ))}
