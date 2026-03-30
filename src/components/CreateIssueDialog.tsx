@@ -88,7 +88,7 @@ export function CreateIssueDrawer({ onClose, parentId, parentTitle }: CreateIssu
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="sm:max-w-md border-l border-border/60"
+      <DrawerContent className="sm:max-w-md border-l border-border/60 select-text" data-vaul-no-drag
       >
         <div className="mx-auto w-full max-w-lg">
           <DrawerHeader className="pb-3">

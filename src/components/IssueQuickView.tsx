@@ -302,7 +302,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
       modal={false}
       onOpenChange={(open) => !open && onClose()}
     >
-      <DrawerContent className="sm:max-w-md overflow-y-auto border-l border-border/60">
+      <DrawerContent className="sm:max-w-md overflow-y-auto border-l border-border/60 select-text" data-vaul-no-drag>
         <DrawerHeader className="flex flex-row items-start justify-between gap-2 pb-3">
           <div className="flex flex-col gap-1 min-w-0">
             <DrawerTitle className="truncate text-[15px] font-medium">

@@ -237,6 +237,7 @@
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.55 0.010 285);
   --sidebar-ring: oklch(0.80 0.18 285);
+  --button-border: var(--foreground);
 }
 
 /* Dark Ocean — deep blue accent */

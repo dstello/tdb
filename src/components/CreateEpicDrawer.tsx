@@ -79,7 +79,7 @@ export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
 
   return (
     <Drawer open direction="right" modal={false} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="sm:max-w-md border-l border-border/60">
+      <DrawerContent className="sm:max-w-md border-l border-border/60 select-text" data-vaul-no-drag>
         <div className="mx-auto w-full max-w-lg">
           <DrawerHeader className="pb-3">
             <DrawerTitle className="text-[15px] font-medium">Create Epic</DrawerTitle>
