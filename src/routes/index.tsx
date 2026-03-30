@@ -52,7 +52,7 @@ function Dashboard() {
     viewMode, setViewMode,
     showClosed, toggleClosed,
     hideSubtasks, toggleSubtasks,
-  } = useSearchParamFilters(search, { defaultView: 'list', defaultHideSubtasks: true })
+  } = useSearchParamFilters(search, { pageKey: 'issues', defaultView: 'list', defaultHideSubtasks: true })
 
   const monitor = useQuery({
     queryKey: ['monitor', true],

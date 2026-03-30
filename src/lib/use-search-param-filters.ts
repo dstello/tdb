@@ -12,12 +12,20 @@ import type { IssueFilterState, IssueFilterSetters } from '~/components/tasks/is
 export function useSearchParamFilters(
   search: IssueSearchParams,
   opts: {
+    pageKey: string          // e.g. 'issues', 'boards', 'epic-detail'
     defaultView: ViewMode
     defaultHideSubtasks?: boolean
   },
 ) {
   const navigate = useNavigate()
   const parsed = parseSearchParams(search as Record<string, unknown>)
+
+  // Resolve view mode: URL param > localStorage > page default
+  const storageKey = `tdb-view-${opts.pageKey}`
+  const storedView = typeof window !== 'undefined'
+    ? (localStorage.getItem(storageKey) as ViewMode | null)
+    : null
+  const resolvedView = parsed.view ?? storedView ?? opts.defaultView
 
   // Debounced search: local state for responsive typing
   const [localSearch, setLocalSearch] = useState(parsed.q)
@@ -82,11 +90,14 @@ export function useSearchParamFilters(
     setPriorityFilter: useCallback((p: string[]) => update({ priority: p }), [update]),
   }
 
-  // View mode
-  const viewMode: ViewMode = parsed.view ?? opts.defaultView
+  // View mode (URL > localStorage > default)
+  const viewMode: ViewMode = resolvedView
   const setViewMode = useCallback(
-    (v: ViewMode) => update({ view: v }),
-    [update],
+    (v: ViewMode) => {
+      localStorage.setItem(storageKey, v)
+      update({ view: v })
+    },
+    [update, storageKey],
   )
 
   // Toggles

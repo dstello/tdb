@@ -68,7 +68,7 @@ function EpicDetailPage() {
     filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
-  } = useSearchParamFilters(search, { defaultView: 'board' })
+  } = useSearchParamFilters(search, { pageKey: 'epic-detail', defaultView: 'board' })
 
   const epicQuery = useQuery({
     queryKey: ['issue', id],

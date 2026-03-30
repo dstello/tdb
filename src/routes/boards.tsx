@@ -59,7 +59,7 @@ function BoardsPage() {
     filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
-  } = useSearchParamFilters(search, { defaultView: 'board' })
+  } = useSearchParamFilters(search, { pageKey: 'boards', defaultView: 'board' })
 
   const boardsQuery = useQuery({
     queryKey: ['boards'],
