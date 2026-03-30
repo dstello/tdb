@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchIssue,
@@ -32,6 +33,9 @@ import { validateIssueSearch } from '~/lib/search-params'
 import { useSearchParamFilters } from '~/lib/use-search-param-filters'
 
 export const Route = createFileRoute('/epics/$id')({
+  params: z.object({
+    id: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(128),
+  }),
   component: EpicDetailPage,
   validateSearch: validateIssueSearch,
 })
