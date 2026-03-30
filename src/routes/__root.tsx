@@ -1,17 +1,17 @@
 /// <reference types="vite/client" />
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 import {
   Outlet,
   createRootRoute,
   HeadContent,
   Scripts,
   Link,
-} from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useSSE } from '~/lib/sse'
-import { ThemeProvider } from '~/lib/theme'
-import { ThemeSwitcher } from '~/components/ThemeSwitcher'
-import appCss from '~/styles.css?url'
+} from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useSSE } from "~/lib/sse";
+import { ThemeProvider } from "~/lib/theme";
+import { ThemeSwitcher } from "~/components/ThemeSwitcher";
+import appCss from "~/styles.css?url";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,24 +20,24 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
     },
   },
-})
+});
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'TD — Issue Tracker' },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "TD — Issue Tracker" },
     ],
     links: [
       {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: appCss,
       },
     ],
   }),
   component: RootComponent,
-})
+});
 
 function RootComponent() {
   return (
@@ -82,12 +82,12 @@ function RootComponent() {
         </RootDocument>
       </ThemeProvider>
     </QueryClientProvider>
-  )
+  );
 }
 
 function SSEProvider() {
-  useSSE()
-  return null
+  useSSE();
+  return null;
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
@@ -96,12 +96,16 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
         {/* Inline script to apply stored theme before paint, avoiding FOUC */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('tdb-theme')||'dark';var m={'light':['',''],'light-hc':['','theme-light-hc'],'dark':['dark',''],'dark-dimmed':['dark','theme-dimmed'],'dark-hc':['dark','theme-dark-hc'],'dark-ocean':['dark','theme-ocean']};var c=m[t]||m['dark'];var h=document.documentElement;h.className=(''+c[0]+' '+c[1]).trim()||'';h.setAttribute('lang','en');}catch(e){}})();` }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('tdb-theme')||'dark';var m={'light':['',''],'light-hc':['','theme-light-hc'],'dark':['dark',''],'dark-dimmed':['dark','theme-dimmed'],'dark-hc':['dark','theme-dark-hc']};var c=m[t]||m['dark'];var h=document.documentElement;h.className=(''+c[0]+' '+c[1]).trim()||'';h.setAttribute('lang','en');}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="bg-background font-sans">
         {children}
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
