@@ -343,6 +343,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               </DrawerClose>
             </div>
           </div>
+          <Separator className="my-1" />
           <DrawerTitle className="text-[15px] font-medium">
             {isLoading ? "Loading..." : (issue?.title ?? "Issue")}
           </DrawerTitle>
@@ -495,7 +496,14 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                   </Link>
                 )}
 
-                {/* Badges */}
+                {/* Description */}
+                {issue.description && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {issue.description}
+                  </p>
+                )}
+
+                {/* Type / Status / Priority */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {issueType && (
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -520,13 +528,6 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     </span>
                   )}
                 </div>
-
-                {/* Description */}
-                {issue.description && (
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {issue.description}
-                  </p>
-                )}
 
                 {/* Meta */}
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
