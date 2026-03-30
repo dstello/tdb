@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EpicsRouteImport } from './routes/epics'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BoardsRouteImport } from './routes/boards'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EpicsIndexRouteImport } from './routes/epics.index'
@@ -19,6 +20,11 @@ import { Route as EpicsIdRouteImport } from './routes/epics.$id'
 const EpicsRoute = EpicsRouteImport.update({
   id: '/epics',
   path: '/epics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BoardsRoute = BoardsRouteImport.update({
@@ -50,6 +56,7 @@ const EpicsIdRoute = EpicsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/dashboard': typeof DashboardRoute
   '/epics': typeof EpicsRouteWithChildren
   '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/dashboard': typeof DashboardRoute
   '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
   '/epics': typeof EpicsIndexRoute
@@ -66,6 +74,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/boards': typeof BoardsRoute
+  '/dashboard': typeof DashboardRoute
   '/epics': typeof EpicsRouteWithChildren
   '/epics/$id': typeof EpicsIdRoute
   '/issues/$id': typeof IssuesIdRoute
@@ -76,16 +85,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/boards'
+    | '/dashboard'
     | '/epics'
     | '/epics/$id'
     | '/issues/$id'
     | '/epics/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/boards' | '/epics/$id' | '/issues/$id' | '/epics'
+  to: '/' | '/boards' | '/dashboard' | '/epics/$id' | '/issues/$id' | '/epics'
   id:
     | '__root__'
     | '/'
     | '/boards'
+    | '/dashboard'
     | '/epics'
     | '/epics/$id'
     | '/issues/$id'
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BoardsRoute: typeof BoardsRoute
+  DashboardRoute: typeof DashboardRoute
   EpicsRoute: typeof EpicsRouteWithChildren
   IssuesIdRoute: typeof IssuesIdRoute
 }
@@ -106,6 +118,13 @@ declare module '@tanstack/react-router' {
       path: '/epics'
       fullPath: '/epics'
       preLoaderRoute: typeof EpicsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/boards': {
@@ -161,6 +180,7 @@ const EpicsRouteWithChildren = EpicsRoute._addFileChildren(EpicsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardsRoute: BoardsRoute,
+  DashboardRoute: DashboardRoute,
   EpicsRoute: EpicsRouteWithChildren,
   IssuesIdRoute: IssuesIdRoute,
 }

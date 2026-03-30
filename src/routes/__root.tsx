@@ -54,11 +54,18 @@ function RootComponent() {
                 </Link>
                 <div className="h-4 w-px bg-border" />
                 <Link
+                  to="/dashboard"
+                  className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+                >
+                  Dashboard
+                </Link>
+                <Link
                   to="/"
                   className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
                 >
                   Issues
                 </Link>
+
                 <Link
                   to="/boards"
                   className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
