@@ -3,7 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchIssues, type Issue } from '~/lib/api'
 import { statuses, priorities } from '~/components/tasks/data'
-import { Mountain, Plus, ChevronRight } from 'lucide-react'
+import { Mountain, Plus, ChevronRight, Archive } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { CreateEpicDrawer } from '~/components/CreateEpicDrawer'
 
@@ -13,6 +13,7 @@ export const Route = createFileRoute('/epics/')({
 
 function EpicsPage() {
   const [showCreate, setShowCreate] = useState(false)
+  const [showClosed, setShowClosed] = useState(false)
 
   const epicsQuery = useQuery({
     queryKey: ['issues', 'epics'],
@@ -25,12 +26,15 @@ function EpicsPage() {
     queryFn: () => fetchIssues({ limit: 500 }),
   })
 
-  const epics = epicsQuery.data?.issues ?? []
+  const allEpics = epicsQuery.data?.issues ?? []
   const allIssues = allIssuesQuery.data?.issues ?? []
+
+  const openEpics = allEpics.filter((e) => e.status !== 'closed')
+  const closedEpics = allEpics.filter((e) => e.status === 'closed')
 
   // Build child stats per epic
   const epicStats = new Map<string, { total: number; closed: number; inProgress: number }>()
-  for (const epic of epics) {
+  for (const epic of allEpics) {
     epicStats.set(epic.id, { total: 0, closed: 0, inProgress: 0 })
   }
   for (const issue of allIssues) {
@@ -51,27 +55,60 @@ function EpicsPage() {
             Large initiatives broken into subtasks
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowCreate(true)}>
-          <Plus className="size-3.5 mr-1.5" />
-          Create Epic
-        </Button>
+        <div className="flex items-center gap-2">
+          {closedEpics.length > 0 && (
+            <Button
+              variant={showClosed ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setShowClosed(!showClosed)}
+            >
+              <Archive className="size-3.5 mr-1.5" />
+              {showClosed ? 'Hide' : 'Show'} closed ({closedEpics.length})
+            </Button>
+          )}
+          <Button size="sm" onClick={() => setShowCreate(true)}>
+            <Plus className="size-3.5 mr-1.5" />
+            Create Epic
+          </Button>
+        </div>
       </div>
 
       {epicsQuery.isLoading ? (
         <div className="text-sm text-muted-foreground py-12 text-center">Loading epics...</div>
-      ) : epics.length === 0 ? (
+      ) : openEpics.length === 0 && !showClosed ? (
         <div className="text-sm text-muted-foreground py-12 text-center">
-          No epics yet. Create one to organize related tasks.
+          No open epics. Create one to organize related tasks.
         </div>
       ) : (
-        <div className="grid gap-3">
-          {epics.map((epic) => (
-            <EpicCard
-              key={epic.id}
-              epic={epic}
-              stats={epicStats.get(epic.id) ?? { total: 0, closed: 0, inProgress: 0 }}
-            />
-          ))}
+        <div className="space-y-6">
+          {openEpics.length > 0 && (
+            <div className="grid gap-3">
+              {openEpics.map((epic) => (
+                <EpicCard
+                  key={epic.id}
+                  epic={epic}
+                  stats={epicStats.get(epic.id) ?? { total: 0, closed: 0, inProgress: 0 }}
+                />
+              ))}
+            </div>
+          )}
+
+          {showClosed && closedEpics.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Closed
+              </h2>
+              <div className="grid gap-3 opacity-60">
+                {closedEpics.map((epic) => (
+                  <EpicCard
+                    key={epic.id}
+                    epic={epic}
+                    stats={epicStats.get(epic.id) ?? { total: 0, closed: 0, inProgress: 0 }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
