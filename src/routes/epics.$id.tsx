@@ -11,7 +11,7 @@ import { statuses, priorities } from '~/components/tasks/data'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
-import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { ViewToggle } from '~/components/tasks/view-toggle'
 import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { Button } from '~/components/ui/button'
@@ -28,9 +28,12 @@ import {
   LockOpen,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
+import { validateIssueSearch } from '~/lib/search-params'
+import { useSearchParamFilters } from '~/lib/use-search-param-filters'
 
 export const Route = createFileRoute('/epics/$id')({
   component: EpicDetailPage,
+  validateSearch: validateIssueSearch,
 })
 
 const transitionMap: Record<string, { actions: string[]; label: string; icon: typeof Play; className: string }[]> = {
@@ -57,10 +60,15 @@ const transitionMap: Record<string, { actions: string[]; label: string; icon: ty
 function EpicDetailPage() {
   const { id } = Route.useParams()
   const queryClient = useQueryClient()
+  const search = Route.useSearch()
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
-  const [showClosed, setShowClosed] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('board')
+
+  const {
+    filterState, filterSetters,
+    viewMode, setViewMode,
+    showClosed, toggleClosed,
+  } = useSearchParamFilters(search, { defaultView: 'board' })
 
   const epicQuery = useQuery({
     queryKey: ['issue', id],
@@ -90,7 +98,7 @@ function EpicDetailPage() {
     ? children
     : children.filter((c) => c.status !== 'closed')
 
-  const filters = useIssueFilters(preFiltered)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
   const filteredChildren = filters.filtered
 
   const transitionMut = useMutation({
@@ -210,7 +218,7 @@ function EpicDetailPage() {
       <IssueFilterBar
         filters={filters}
         showClosed={showClosed}
-        onToggleClosed={() => setShowClosed((v) => !v)}
+        onToggleClosed={toggleClosed}
         showCreate={showCreate}
         onShowCreate={() => setShowCreate(true)}
         onCloseCreate={() => setShowCreate(false)}

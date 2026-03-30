@@ -5,13 +5,16 @@ import { fetchMonitor, fetchStats, deleteIssue, type Issue } from '~/lib/api'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
-import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { ViewToggle } from '~/components/tasks/view-toggle'
 import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { KeyboardShortcutsDialog } from '~/components/KeyboardShortcuts'
+import { validateIssueSearch } from '~/lib/search-params'
+import { useSearchParamFilters } from '~/lib/use-search-param-filters'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
+  validateSearch: validateIssueSearch,
 })
 
 function collectIssues(data: ReturnType<typeof useQuery<Awaited<ReturnType<typeof fetchMonitor>>>>['data']): Issue[] {
@@ -38,13 +41,18 @@ function collectIssues(data: ReturnType<typeof useQuery<Awaited<ReturnType<typeo
 function Dashboard() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const search = Route.useSearch()
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
-  const [showClosed, setShowClosed] = useState(false)
-  const [hideSubtasks, setHideSubtasks] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [showShortcuts, setShowShortcuts] = useState(false)
+
+  const {
+    filterState, filterSetters,
+    viewMode, setViewMode,
+    showClosed, toggleClosed,
+    hideSubtasks, toggleSubtasks,
+  } = useSearchParamFilters(search, { defaultView: 'list', defaultHideSubtasks: true })
 
   const monitor = useQuery({
     queryKey: ['monitor', true],
@@ -65,7 +73,7 @@ function Dashboard() {
     return true
   })
 
-  const filters = useIssueFilters(preFiltered)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
   const issues = filters.filtered
 
   // Build parent name lookup for subtask display
@@ -219,9 +227,9 @@ function Dashboard() {
       <IssueFilterBar
         filters={filters}
         showClosed={showClosed}
-        onToggleClosed={() => setShowClosed((v) => !v)}
+        onToggleClosed={toggleClosed}
         hideSubtasks={hideSubtasks}
-        onToggleSubtasks={() => setHideSubtasks((v) => !v)}
+        onToggleSubtasks={toggleSubtasks}
         showCreate={showCreate}
         onShowCreate={() => setShowCreate(true)}
         onCloseCreate={() => setShowCreate(false)}

@@ -11,18 +11,44 @@ import type { Issue } from '~/lib/api'
 
 // ─── Hook ────────────────────────────────────────────────────────
 
-export interface IssueFilters {
+export interface IssueFilterState {
   search: string
   statusFilter: string[]
   typeFilter: string[]
   priorityFilter: string[]
 }
 
-export function useIssueFilters(issues: Issue[]) {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [typeFilter, setTypeFilter] = useState<string[]>([])
-  const [priorityFilter, setPriorityFilter] = useState<string[]>([])
+export interface IssueFilterSetters {
+  setSearch: (s: string) => void
+  setStatusFilter: (s: string[]) => void
+  setTypeFilter: (t: string[]) => void
+  setPriorityFilter: (p: string[]) => void
+}
+
+/**
+ * Core filtering hook. Can be backed by either local state or URL search params.
+ * If `externalState` and `externalSetters` are provided, uses those instead of internal useState.
+ */
+export function useIssueFilters(
+  issues: Issue[],
+  externalState?: IssueFilterState,
+  externalSetters?: IssueFilterSetters,
+) {
+  // Internal state (fallback when no external state provided)
+  const [_search, _setSearch] = useState('')
+  const [_statusFilter, _setStatusFilter] = useState<string[]>([])
+  const [_typeFilter, _setTypeFilter] = useState<string[]>([])
+  const [_priorityFilter, _setPriorityFilter] = useState<string[]>([])
+
+  const search = externalState?.search ?? _search
+  const statusFilter = externalState?.statusFilter ?? _statusFilter
+  const typeFilter = externalState?.typeFilter ?? _typeFilter
+  const priorityFilter = externalState?.priorityFilter ?? _priorityFilter
+
+  const setSearch = externalSetters?.setSearch ?? _setSearch
+  const setStatusFilter = externalSetters?.setStatusFilter ?? _setStatusFilter
+  const setTypeFilter = externalSetters?.setTypeFilter ?? _setTypeFilter
+  const setPriorityFilter = externalSetters?.setPriorityFilter ?? _setPriorityFilter
 
   const filtered = useMemo(() => {
     return issues.filter((issue) => {
@@ -54,7 +80,7 @@ export function useIssueFilters(issues: Issue[]) {
     setStatusFilter([])
     setTypeFilter([])
     setPriorityFilter([])
-  }, [])
+  }, [setSearch, setStatusFilter, setTypeFilter, setPriorityFilter])
 
   return {
     filtered,

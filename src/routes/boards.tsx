@@ -12,7 +12,7 @@ import {
 } from '~/lib/api'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
-import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { ViewToggle } from '~/components/tasks/view-toggle'
 import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
@@ -31,9 +31,12 @@ import {
   Trash2,
   LayoutGrid,
 } from 'lucide-react'
+import { validateIssueSearch } from '~/lib/search-params'
+import { useSearchParamFilters } from '~/lib/use-search-param-filters'
 
 export const Route = createFileRoute('/boards')({
   component: BoardsPage,
+  validateSearch: validateIssueSearch,
 })
 
 const swimlaneColumns = [
@@ -46,12 +49,17 @@ const swimlaneColumns = [
 
 function BoardsPage() {
   const queryClient = useQueryClient()
+  const search = Route.useSearch()
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null)
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
-  const [showClosed, setShowClosed] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('board')
+
+  const {
+    filterState, filterSetters,
+    viewMode, setViewMode,
+    showClosed, toggleClosed,
+  } = useSearchParamFilters(search, { defaultView: 'board' })
 
   const boardsQuery = useQuery({
     queryKey: ['boards'],
@@ -83,7 +91,7 @@ function BoardsPage() {
   const allIssues: Issue[] = boardIssues.map((bi) => bi.issue)
   const preFiltered = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
 
-  const filters = useIssueFilters(preFiltered)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
   const issues = filters.filtered
 
   const parentNames = useMemo(() => {
@@ -118,7 +126,7 @@ function BoardsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowClosed((v) => !v)}
+            onClick={toggleClosed}
             className="text-xs"
           >
             {showClosed ? 'Hide Closed' : 'Show Closed'}
