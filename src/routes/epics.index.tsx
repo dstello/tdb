@@ -56,16 +56,15 @@ function EpicsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {closedEpics.length > 0 && (
-            <Button
-              variant={showClosed ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setShowClosed(!showClosed)}
-            >
-              <Archive className="size-3.5 mr-1.5" />
-              {showClosed ? 'Hide' : 'Show'} closed ({closedEpics.length})
-            </Button>
-          )}
+          <Button
+            variant={showClosed ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setShowClosed(!showClosed)}
+            disabled={closedEpics.length === 0}
+          >
+            <Archive className="size-3.5 mr-1.5" />
+            {showClosed ? 'Hide' : 'Show'} closed ({closedEpics.length})
+          </Button>
           <Button size="sm" onClick={() => setShowCreate(true)}>
             <Plus className="size-3.5 mr-1.5" />
             Create Epic
