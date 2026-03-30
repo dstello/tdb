@@ -33,6 +33,7 @@ export function useIssueFilters(
   issues: Issue[],
   externalState?: IssueFilterState,
   externalSetters?: IssueFilterSetters,
+  externalReset?: () => void,
 ) {
   // Internal state (fallback when no external state provided)
   const [_search, _setSearch] = useState('')
@@ -75,12 +76,14 @@ export function useIssueFilters(
 
   const isFiltered = !!(search || statusFilter.length || typeFilter.length || priorityFilter.length)
 
-  const reset = useCallback(() => {
+  const _reset = useCallback(() => {
     setSearch('')
     setStatusFilter([])
     setTypeFilter([])
     setPriorityFilter([])
   }, [setSearch, setStatusFilter, setTypeFilter, setPriorityFilter])
+
+  const reset = externalReset ?? _reset
 
   return {
     filtered,

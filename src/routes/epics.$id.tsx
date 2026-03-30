@@ -65,7 +65,7 @@ function EpicDetailPage() {
   const [showCreate, setShowCreate] = useState(false)
 
   const {
-    filterState, filterSetters,
+    filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
   } = useSearchParamFilters(search, { defaultView: 'board' })
@@ -98,7 +98,7 @@ function EpicDetailPage() {
     ? children
     : children.filter((c) => c.status !== 'closed')
 
-  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters, resetFilters)
   const filteredChildren = filters.filtered
 
   const transitionMut = useMutation({

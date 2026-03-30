@@ -56,7 +56,7 @@ function BoardsPage() {
   const [editingBoard, setEditingBoard] = useState<Board | null>(null)
 
   const {
-    filterState, filterSetters,
+    filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
   } = useSearchParamFilters(search, { defaultView: 'board' })
@@ -91,7 +91,7 @@ function BoardsPage() {
   const allIssues: Issue[] = boardIssues.map((bi) => bi.issue)
   const preFiltered = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
 
-  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters, resetFilters)
   const issues = filters.filtered
 
   const parentNames = useMemo(() => {

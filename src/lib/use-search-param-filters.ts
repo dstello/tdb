@@ -102,9 +102,29 @@ export function useSearchParamFilters(
     [update, hideSubtasks],
   )
 
+  // Reset all filter params in a single navigation
+  const resetFilters = useCallback(() => {
+    setLocalSearch('')
+    prevQ.current = ''
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    const next = buildSearchParams({
+      q: '',
+      status: [],
+      type: [],
+      priority: [],
+      view: parsed.view ?? opts.defaultView,
+      defaultView: opts.defaultView,
+      showClosed: parsed.showClosed,
+      hideSubtasks: parsed.hideSubtasks,
+      defaultHideSubtasks: opts.defaultHideSubtasks,
+    })
+    navigate({ search: next, replace: true })
+  }, [navigate, parsed.view, parsed.showClosed, parsed.hideSubtasks, opts.defaultView, opts.defaultHideSubtasks])
+
   return {
     filterState,
     filterSetters,
+    resetFilters,
     viewMode,
     setViewMode,
     showClosed,

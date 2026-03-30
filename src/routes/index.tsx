@@ -48,7 +48,7 @@ function Dashboard() {
   const [showShortcuts, setShowShortcuts] = useState(false)
 
   const {
-    filterState, filterSetters,
+    filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
     hideSubtasks, toggleSubtasks,
@@ -73,7 +73,7 @@ function Dashboard() {
     return true
   })
 
-  const filters = useIssueFilters(preFiltered, filterState, filterSetters)
+  const filters = useIssueFilters(preFiltered, filterState, filterSetters, resetFilters)
   const issues = filters.filtered
 
   // Build parent name lookup for subtask display
