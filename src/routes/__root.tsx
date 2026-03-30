@@ -9,6 +9,8 @@ import {
 } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useSSE } from '~/lib/sse'
+import { ThemeProvider } from '~/lib/theme'
+import { ThemeSwitcher } from '~/components/ThemeSwitcher'
 import appCss from '~/styles.css?url'
 
 const queryClient = new QueryClient({
@@ -40,40 +42,45 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RootDocument>
-        <SSEProvider />
-        <div className="min-h-screen bg-background text-foreground">
-          <nav className="border-b bg-card/60 backdrop-blur-sm sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 h-12 flex items-center gap-6">
-              <Link to="/" className="flex items-center gap-2">
-                <img src="/td-logo.png" alt="td" className="h-6" />
-              </Link>
-              <div className="h-4 w-px bg-border" />
-              <Link
-                to="/"
-                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
-              >
-                Issues
-              </Link>
-              <Link
-                to="/boards"
-                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
-              >
-                Boards
-              </Link>
-              <Link
-                to="/epics"
-                className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
-              >
-                Epics
-              </Link>
-            </div>
-          </nav>
-          <main className="max-w-7xl mx-auto px-6 sm:px-8 py-8">
-            <Outlet />
-          </main>
-        </div>
-      </RootDocument>
+      <ThemeProvider>
+        <RootDocument>
+          <SSEProvider />
+          <div className="min-h-screen bg-background text-foreground">
+            <nav className="border-b bg-card/60 backdrop-blur-sm sticky top-0 z-50">
+              <div className="max-w-7xl mx-auto px-6 sm:px-8 h-12 flex items-center gap-6">
+                <Link to="/" className="flex items-center gap-2">
+                  <img src="/td-logo.png" alt="td" className="h-6" />
+                </Link>
+                <div className="h-4 w-px bg-border" />
+                <Link
+                  to="/"
+                  className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+                >
+                  Issues
+                </Link>
+                <Link
+                  to="/boards"
+                  className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+                >
+                  Boards
+                </Link>
+                <Link
+                  to="/epics"
+                  className="text-[13px] text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground"
+                >
+                  Epics
+                </Link>
+                <div className="ml-auto">
+                  <ThemeSwitcher />
+                </div>
+              </div>
+            </nav>
+            <main className="max-w-7xl mx-auto px-6 sm:px-8 py-8">
+              <Outlet />
+            </main>
+          </div>
+        </RootDocument>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }
