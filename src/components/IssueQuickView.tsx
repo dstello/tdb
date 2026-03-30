@@ -303,49 +303,49 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
       onOpenChange={(open) => !open && onClose()}
     >
       <DrawerContent className="sm:max-w-md overflow-y-auto border-l border-border/60 select-text" data-vaul-no-drag>
-        <DrawerHeader className="flex flex-row items-start justify-between gap-2 pb-3">
-          <div className="flex flex-col gap-1 min-w-0">
-            <DrawerTitle className="truncate text-[15px] font-medium">
-              {isLoading ? "Loading..." : (issue?.title ?? "Issue")}
-            </DrawerTitle>
+        <DrawerHeader className="flex flex-col gap-1 pb-3">
+          <div className="flex items-center justify-between gap-2">
             <DrawerDescription className="font-mono text-[11px]">
               {issueId.slice(0, 8)}
             </DrawerDescription>
-          </div>
-          <div className="flex items-center gap-0.5 shrink-0">
-            {issue && !isEditing && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              {issue && !isEditing && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => startEditing(issue)}
+                >
+                  <Pencil className="size-3.5" />
+                  <span className="sr-only">Edit</span>
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
                 className="size-7 text-muted-foreground hover:text-foreground"
-                onClick={() => startEditing(issue)}
+                asChild
               >
-                <Pencil className="size-3.5" />
-                <span className="sr-only">Edit</span>
+                <Link to="/issues/$id" params={{ id: issueId }}>
+                  <ExternalLink className="size-3.5" />
+                  <span className="sr-only">Full page</span>
+                </Link>
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground hover:text-foreground"
-              asChild
-            >
-              <Link to="/issues/$id" params={{ id: issueId }}>
-                <ExternalLink className="size-3.5" />
-                <span className="sr-only">Full page</span>
-              </Link>
-            </Button>
-            <DrawerClose asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3.5" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </DrawerClose>
+              <DrawerClose asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                  <span className="sr-only">Close</span>
+                </Button>
+              </DrawerClose>
+            </div>
           </div>
+          <DrawerTitle className="text-[15px] font-medium">
+            {isLoading ? "Loading..." : (issue?.title ?? "Issue")}
+          </DrawerTitle>
         </DrawerHeader>
 
         {isLoading && (
