@@ -92,9 +92,11 @@ function SSEProvider() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Inline script to apply stored theme before paint, avoiding FOUC */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('tdb-theme')||'dark';var m={'light':['',''],'light-hc':['','theme-light-hc'],'dark':['dark',''],'dark-dimmed':['dark','theme-dimmed'],'dark-hc':['dark','theme-dark-hc'],'dark-ocean':['dark','theme-ocean']};var c=m[t]||m['dark'];var h=document.documentElement;h.className=(''+c[0]+' '+c[1]).trim()||'';h.setAttribute('lang','en');}catch(e){}})();` }} />
       </head>
       <body className="bg-background font-sans">
         {children}
