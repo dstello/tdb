@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { type Issue } from '~/lib/api'
 import { types, priorities } from './data'
 import { Badge } from '~/components/ui/badge'
@@ -8,12 +9,12 @@ import {
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
-export function IssueCard({
+export const IssueCard = memo(function IssueCard({
   issue,
   onClick,
 }: {
   issue: Issue
-  onClick: () => void
+  onClick: (id: string) => void
 }) {
   const issueType = types.find((t) => t.value === issue.type)
   const priority = priorities.find((p) => p.value === issue.priority.toLowerCase())
@@ -27,7 +28,7 @@ export function IssueCard({
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(issue.id)}
       className={cn(
         "flex flex-col gap-1.5 rounded-md border border-border/50 p-2.5 text-left hover:border-border transition-colors cursor-pointer w-full",
         issue.status === 'closed' ? "bg-card/50 opacity-60" : "bg-card"
@@ -72,4 +73,4 @@ export function IssueCard({
       )}
     </button>
   )
-}
+})

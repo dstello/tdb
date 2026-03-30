@@ -22,7 +22,7 @@ const createIssueSchema = z.object({
   priority: z.string().optional(),
   description: z.string().max(10000).optional(),
   labels: z.array(z.string().max(100)).max(20).optional(),
-  parent_id: z.string().regex(/^[a-zA-Z0-9_-]*$/).optional(),
+  parent_id: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
 })
 
 const typeOptions = [

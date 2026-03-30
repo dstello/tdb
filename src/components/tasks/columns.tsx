@@ -4,6 +4,10 @@ import { Checkbox } from "~/components/ui/checkbox"
 
 import { types, statuses, priorities } from "./data"
 import { type Issue } from "~/lib/api"
+
+const statusMap = new Map(statuses.map((s) => [s.value, s]))
+const typeMap = new Map(types.map((t) => [t.value, t]))
+const priorityMap = new Map(priorities.map((p) => [p.value, p]))
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 import { CornerDownRight } from "lucide-react"
@@ -66,7 +70,7 @@ export const columns: ColumnDef<Issue>[] = [
       const isSubtask = !!issue.parent_id
       const meta = table.options.meta as IssueTableMeta | undefined
       const parentName = isSubtask && meta?.parentNames?.get(issue.parent_id!)
-      const issueType = types.find((t) => t.value === issue.type)
+      const issueType = typeMap.get(issue.type)
 
       return (
         <div className="flex items-center gap-2 min-w-0">
@@ -94,9 +98,7 @@ export const columns: ColumnDef<Issue>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const status = statuses.find(
-        (s) => s.value === row.getValue("status")
-      )
+      const status = statusMap.get(row.getValue("status") as string)
 
       if (!status) {
         return <span>{row.getValue("status")}</span>
@@ -119,9 +121,7 @@ export const columns: ColumnDef<Issue>[] = [
       <DataTableColumnHeader column={column} title="Type" />
     ),
     cell: ({ row }) => {
-      const issueType = types.find(
-        (t) => t.value === row.getValue("type")
-      )
+      const issueType = typeMap.get(row.getValue("type") as string)
 
       if (!issueType) {
         return <span>{row.getValue("type")}</span>
@@ -144,9 +144,7 @@ export const columns: ColumnDef<Issue>[] = [
       <DataTableColumnHeader column={column} title="Priority" />
     ),
     cell: ({ row }) => {
-      const priority = priorities.find(
-        (p) => p.value === row.getValue("priority")
-      )
+      const priority = priorityMap.get(row.getValue("priority") as string)
 
       if (!priority) {
         return <span>{row.getValue("priority")}</span>

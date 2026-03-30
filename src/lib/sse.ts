@@ -13,16 +13,24 @@ export function useSSE() {
       const es = new EventSource(getEventsUrl())
       esRef.current = es
 
-      es.addEventListener('refresh', () => {
-        queryClient.invalidateQueries()
+      const onRefresh = () => {
+        queryClient.invalidateQueries({ queryKey: ['monitor'] })
+        queryClient.invalidateQueries({ queryKey: ['stats'] })
+        queryClient.invalidateQueries({ queryKey: ['issues'] })
+        queryClient.invalidateQueries({ queryKey: ['boards'] })
         retryDelay = 1000
-      })
+      }
 
-      es.addEventListener('ping', () => {
+      const onPing = () => {
         retryDelay = 1000
-      })
+      }
+
+      es.addEventListener('refresh', onRefresh)
+      es.addEventListener('ping', onPing)
 
       es.onerror = () => {
+        es.removeEventListener('refresh', onRefresh)
+        es.removeEventListener('ping', onPing)
         es.close()
         setTimeout(connect, retryDelay)
         retryDelay = Math.min(retryDelay * 2, 10000)

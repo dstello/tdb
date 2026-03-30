@@ -78,7 +78,7 @@ function BoardsPage() {
     queryKey: ['board', selectedBoardId],
     queryFn: () => fetchBoard(selectedBoardId!),
     enabled: !!selectedBoardId,
-    refetchInterval: 15_000,
+    refetchInterval: 60_000,
   })
 
   const deleteMut = useMutation({
@@ -106,9 +106,10 @@ function BoardsPage() {
     return map
   }, [allIssues])
 
-  const visibleColumns = showClosed
-    ? swimlaneColumns
-    : swimlaneColumns.filter((col) => col.status !== 'closed')
+  const visibleColumns = useMemo(
+    () => showClosed ? swimlaneColumns : swimlaneColumns.filter((col) => col.status !== 'closed'),
+    [showClosed]
+  )
 
   const tableMeta: IssueTableMeta = {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
@@ -217,7 +218,7 @@ function BoardsPage() {
           <SwimlaneBoardView
             issues={issues}
             onIssueClick={(issueId) => setSelectedIssueId(issueId)}
-            columns={[...visibleColumns]}
+            columns={visibleColumns}
             isLoading={boardDetailQuery.isLoading}
             emptyMessage="No issues match this board's query."
           />

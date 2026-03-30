@@ -42,6 +42,7 @@ import {
   Mountain,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { getActivityIcon } from "~/lib/activity-icons";
 
 const typeOptions = [
   { value: "task", label: "Task" },
@@ -91,7 +92,7 @@ const transitionMap: Record<
       actions: ["close"],
       label: "Close",
       icon: XCircle,
-      className: "text-muted-foreground hover:bg-muted-foreground/10",
+      className: "text-red-400 hover:bg-red-400/10",
     },
   ],
   in_progress: [
@@ -117,7 +118,7 @@ const transitionMap: Record<
       actions: ["close"],
       label: "Close",
       icon: XCircle,
-      className: "text-muted-foreground hover:bg-muted-foreground/10",
+      className: "text-red-400 hover:bg-red-400/10",
     },
   ],
   in_review: [
@@ -137,7 +138,7 @@ const transitionMap: Record<
       actions: ["close"],
       label: "Close",
       icon: XCircle,
-      className: "text-muted-foreground hover:bg-muted-foreground/10",
+      className: "text-red-400 hover:bg-red-400/10",
     },
   ],
   blocked: [
@@ -151,7 +152,7 @@ const transitionMap: Record<
       actions: ["close"],
       label: "Close",
       icon: XCircle,
-      className: "text-muted-foreground hover:bg-muted-foreground/10",
+      className: "text-red-400 hover:bg-red-400/10",
     },
   ],
   closed: [
@@ -201,9 +202,9 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
   // Fetch child count if this is an epic
   const childrenQuery = useQuery({
     queryKey: ["issues", "children", issueId],
-    queryFn: () => fetchIssues({ limit: 500 }),
+    queryFn: () => fetchIssues({ parent: issueId, limit: 500 }),
     enabled: issue?.type === "epic",
-    select: (data) => data.issues.filter((i) => i.parent_id === issueId),
+    select: (data) => data.issues,
   });
 
   const transitionMut = useMutation({
@@ -214,7 +215,11 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
       }
       return result;
     },
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
+      queryClient.invalidateQueries({ queryKey: ["monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    },
   });
 
   const commentMut = useMutation({
@@ -228,7 +233,9 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
   const deleteMut = useMutation({
     mutationFn: () => deleteIssue(issueId),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({ queryKey: ["issues"] });
       onClose();
     },
   });
@@ -239,7 +246,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
     onSuccess: () => {
       setEditingDefer(false);
       queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
-      queryClient.invalidateQueries({ queryKey: ["board"] });
+      queryClient.invalidateQueries({ queryKey: ["monitor"] });
     },
   });
 
@@ -249,7 +256,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
     onSuccess: () => {
       setEditingDue(false);
       queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
-      queryClient.invalidateQueries({ queryKey: ["board"] });
+      queryClient.invalidateQueries({ queryKey: ["monitor"] });
     },
   });
 
@@ -263,7 +270,8 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
     onSuccess: () => {
       setIsEditing(false);
       setEditForm(null);
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
+      queryClient.invalidateQueries({ queryKey: ["monitor"] });
     },
   });
 
@@ -653,22 +661,26 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                     Activity
                   </h4>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                    {data.logs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-start gap-2 text-xs"
-                      >
-                        <span className="text-muted-foreground/60 shrink-0 tabular-nums">
-                          {new Date(log.timestamp).toLocaleString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <span className="truncate">{log.message}</span>
-                      </div>
-                    ))}
+                    {data.logs.map((log) => {
+                      const { icon: Icon, className: iconClass } = getActivityIcon(log.message);
+                      return (
+                        <div
+                          key={log.id}
+                          className="flex items-start gap-2 text-xs"
+                        >
+                          <span className="text-muted-foreground/60 shrink-0 tabular-nums">
+                            {new Date(log.timestamp).toLocaleString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <Icon className={`size-3.5 shrink-0 mt-px ${iconClass}`} />
+                          <span className="truncate">{log.message}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </>

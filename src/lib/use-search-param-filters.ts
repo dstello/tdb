@@ -40,6 +40,13 @@ export function useSearchParamFilters(
     }
   }, [parsed.q])
 
+  // Clear debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   // Helper to navigate with updated search params
   const update = useCallback(
     (updates: Partial<Parameters<typeof buildSearchParams>[0]>) => {

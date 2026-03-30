@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchIssues, type Issue } from '~/lib/api'
@@ -124,7 +124,7 @@ function EpicsPage() {
   )
 }
 
-function EpicCard({
+const EpicCard = memo(function EpicCard({
   epic,
   stats,
 }: {
@@ -195,4 +195,4 @@ function EpicCard({
       <ChevronRight className="size-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors shrink-0" />
     </Link>
   )
-}
+})

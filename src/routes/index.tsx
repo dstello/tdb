@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchMonitor, fetchStats, deleteIssue, getSafeErrorMessage, type Issue } from '~/lib/api'
@@ -67,7 +67,7 @@ function Dashboard() {
   const monitor = useQuery({
     queryKey: ['monitor', true],
     queryFn: () => fetchMonitor({ include_closed: true }),
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   })
 
   const stats = useQuery({
@@ -97,14 +97,15 @@ function Dashboard() {
     return map
   }, [allIssues])
 
-  const getFocusedIssue = useCallback((): Issue | null => {
-    if (focusedRowIndex < 0 || focusedRowIndex >= issues.length) return null
-    return issues[focusedRowIndex]
-  }, [focusedRowIndex, issues])
+  const stateRef = useRef({ issues, focusedRowIndex, selectedIssueId, showCreate, deleteMut })
+  useEffect(() => {
+    stateRef.current = { issues, focusedRowIndex, selectedIssueId, showCreate, deleteMut }
+  })
 
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const { issues, focusedRowIndex, selectedIssueId, showCreate, deleteMut } = stateRef.current
       const target = e.target as HTMLElement
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ||
         target.tagName === 'SELECT' || target.isContentEditable
@@ -144,7 +145,7 @@ function Dashboard() {
 
       // Enter / e: open focused issue
       if (e.key === 'Enter' || e.key === 'e') {
-        const issue = getFocusedIssue()
+        const issue = focusedRowIndex >= 0 && focusedRowIndex < issues.length ? issues[focusedRowIndex] : null
         if (issue) {
           e.preventDefault()
           if (issue.type === 'epic' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
@@ -162,7 +163,7 @@ function Dashboard() {
 
       // d: delete focused issue
       if (e.key === 'd') {
-        const issue = getFocusedIssue()
+        const issue = focusedRowIndex >= 0 && focusedRowIndex < issues.length ? issues[focusedRowIndex] : null
         if (issue) {
           e.preventDefault()
           if (deleteMut.isPending) return
@@ -191,7 +192,7 @@ function Dashboard() {
 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [issues, focusedRowIndex, selectedIssueId, showCreate, getFocusedIssue, navigate, queryClient, deleteMut.isPending])
+  }, [navigate])
 
   const handleIssueClick = useCallback((issueId: string) => {
     const issue = issues.find((i) => i.id === issueId)

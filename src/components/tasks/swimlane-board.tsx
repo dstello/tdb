@@ -63,7 +63,7 @@ export function SwimlaneBoardView({
                   <IssueCard
                     key={issue.id}
                     issue={issue}
-                    onClick={() => onIssueClick(issue.id)}
+                    onClick={onIssueClick}
                   />
                 ))}
                 {colIssues.length === 0 && (
@@ -89,7 +89,7 @@ export function SwimlaneBoardView({
               <IssueCard
                 key={issue.id}
                 issue={issue}
-                onClick={() => onIssueClick(issue.id)}
+                onClick={onIssueClick}
               />
             ))}
           </div>

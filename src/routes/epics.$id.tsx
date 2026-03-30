@@ -43,11 +43,11 @@ export const Route = createFileRoute('/epics/$id')({
 const transitionMap: Record<string, { actions: string[]; label: string; icon: typeof Play; className: string }[]> = {
   open: [
     { actions: ['start'], label: 'Start', icon: Play, className: 'text-emerald-400 hover:bg-emerald-400/10' },
-    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   in_progress: [
     { actions: ['review'], label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
-    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   in_review: [
     { actions: ['approve'], label: 'Approve', icon: Check, className: 'text-emerald-400 hover:bg-emerald-400/10' },
@@ -81,11 +81,7 @@ function EpicDetailPage() {
 
   const childrenQuery = useQuery({
     queryKey: ['issues', 'children', id],
-    queryFn: () => fetchIssues({ limit: 500 }),
-    select: (data) => ({
-      ...data,
-      issues: data.issues.filter((i) => i.parent_id === id),
-    }),
+    queryFn: () => fetchIssues({ parent: id, limit: 500 }),
   })
 
   const epic = epicQuery.data?.issue
@@ -113,7 +109,10 @@ function EpicDetailPage() {
       }
       return result
     },
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['issue', id] })
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+    },
   })
 
   const parentNames = useMemo(() => {

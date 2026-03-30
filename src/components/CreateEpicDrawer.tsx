@@ -62,7 +62,9 @@ export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
       return result
     },
     onSuccess: async (result) => {
-      await queryClient.invalidateQueries()
+      await queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['issues'] })
       onClose()
       navigate({ to: '/epics/$id', params: { id: result.issue.id } })
     },

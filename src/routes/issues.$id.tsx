@@ -16,6 +16,7 @@ import { Input } from '~/components/ui/input'
 import { Separator } from '~/components/ui/separator'
 import { statuses, types, priorities } from '~/components/tasks/data'
 import { CalendarClock, CalendarCheck, AlertCircle } from 'lucide-react'
+import { getActivityIcon } from '~/lib/activity-icons'
 
 export const Route = createFileRoute('/issues/$id')({
   params: z.object({
@@ -29,21 +30,21 @@ const transitionMap: Record<string, { action: string; label: string; variant: 'd
     { action: 'start', label: 'Start', variant: 'default' },
     { action: 'review', label: 'Submit for Review', variant: 'secondary' },
     { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'close', label: 'Close', variant: 'destructive' },
   ],
   in_progress: [
     { action: 'review', label: 'Submit for Review', variant: 'default' },
     { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'close', label: 'Close', variant: 'destructive' },
   ],
   in_review: [
     { action: 'approve', label: 'Approve', variant: 'default' },
     { action: 'reject', label: 'Reject', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'close', label: 'Close', variant: 'destructive' },
   ],
   blocked: [
     { action: 'unblock', label: 'Unblock', variant: 'default' },
-    { action: 'close', label: 'Close', variant: 'outline' },
+    { action: 'close', label: 'Close', variant: 'destructive' },
   ],
   closed: [
     { action: 'reopen', label: 'Reopen', variant: 'default' },
@@ -68,7 +69,10 @@ function IssueDetailPage() {
   const transitionMut = useMutation({
     mutationFn: ({ action }: { action: string }) =>
       transitionIssue(id, action as any),
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['issue', id] })
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+    },
   })
 
   const commentMut = useMutation({
@@ -82,7 +86,8 @@ function IssueDetailPage() {
   const deleteMut = useMutation({
     mutationFn: () => deleteIssue(id),
     onSuccess: () => {
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
       router.navigate({ to: '/' })
     },
   })
@@ -349,14 +354,18 @@ function IssueDetailPage() {
             Activity
           </h3>
           <div className="space-y-2">
-            {logs.map((log) => (
-              <div key={log.id} className="flex items-start gap-2 text-xs">
-                <span className="text-muted-foreground/60 shrink-0 tabular-nums">
-                  {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </span>
-                <span>{log.message}</span>
-              </div>
-            ))}
+            {logs.map((log) => {
+              const { icon: Icon, className: iconClass } = getActivityIcon(log.message)
+              return (
+                <div key={log.id} className="flex items-start gap-2 text-xs">
+                  <span className="text-muted-foreground/60 shrink-0 tabular-nums">
+                    {new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <Icon className={`size-3.5 shrink-0 mt-px ${iconClass}`} />
+                  <span>{log.message}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

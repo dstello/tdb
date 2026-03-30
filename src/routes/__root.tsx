@@ -16,8 +16,9 @@ import appCss from "~/styles.css?url";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10_000,
-      refetchOnWindowFocus: true,
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+      retry: 2,
     },
   },
 });
