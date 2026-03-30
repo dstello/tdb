@@ -66,9 +66,14 @@ export function useSearchParamFilters(
         setLocalSearch(q)
         prevQ.current = q
         if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-          update({ q })
-        }, 300)
+        if (!q) {
+          // Flush immediately when clearing
+          update({ q: '' })
+        } else {
+          debounceRef.current = setTimeout(() => {
+            update({ q })
+          }, 300)
+        }
       },
       [update],
     ),
@@ -91,7 +96,7 @@ export function useSearchParamFilters(
     [update, parsed.showClosed],
   )
 
-  const hideSubtasks = parsed.hideSubtasks || (opts.defaultHideSubtasks ?? false)
+  const hideSubtasks = parsed.hideSubtasks ?? (opts.defaultHideSubtasks ?? false)
   const toggleSubtasks = useCallback(
     () => update({ hideSubtasks: !hideSubtasks }),
     [update, hideSubtasks],

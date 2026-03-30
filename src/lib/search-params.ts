@@ -28,7 +28,7 @@ export function parseSearchParams(raw: Record<string, unknown>): {
   priority: string[]
   view: ViewMode | undefined
   showClosed: boolean
-  hideSubtasks: boolean
+  hideSubtasks: boolean | undefined
 } {
   return {
     q: typeof raw.q === 'string' ? raw.q : '',
@@ -37,7 +37,9 @@ export function parseSearchParams(raw: Record<string, unknown>): {
     priority: csvToArray(typeof raw.priority === 'string' ? raw.priority : undefined),
     view: raw.view === 'board' || raw.view === 'list' ? raw.view : undefined,
     showClosed: raw.showClosed === true || raw.showClosed === 'true',
-    hideSubtasks: raw.hideSubtasks === true || raw.hideSubtasks === 'true',
+    hideSubtasks: raw.hideSubtasks === true || raw.hideSubtasks === 'true' ? true
+      : raw.hideSubtasks === false || raw.hideSubtasks === 'false' ? false
+      : undefined,
   }
 }
 
@@ -67,9 +69,9 @@ export function buildSearchParams(opts: {
   // Only include view if it differs from the page default
   if (opts.view && opts.view !== opts.defaultView) params.view = opts.view
   if (opts.showClosed) params.showClosed = true
-  // Only include hideSubtasks if it differs from the default
+  // Include hideSubtasks when it differs from the page default
   const defaultHS = opts.defaultHideSubtasks ?? false
-  if (opts.hideSubtasks !== undefined && opts.hideSubtasks !== defaultHS) {
+  if (opts.hideSubtasks !== defaultHS) {
     params.hideSubtasks = opts.hideSubtasks
   }
   return params
