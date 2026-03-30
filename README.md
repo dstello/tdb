@@ -1,18 +1,6 @@
-# TD — Issue Tracker Front End
+# TDB - TD in the browser
 
-A task-list-style issue tracker front end built with React, TanStack Router, TanStack Query, shadcn/ui, and Tailwind CSS. It connects to the `td serve` backend API and provides a filterable, sortable data table for managing issues through their lifecycle.
-
-## Tech Stack
-
-- **React 19** — UI framework
-- **TanStack Start** — Full-stack React framework (SSR-capable via Vite plugin)
-- **TanStack Router** — Type-safe file-based routing
-- **TanStack Query** — Server state management with automatic caching and refetching
-- **TanStack Table** — Headless data table with sorting, filtering, and pagination
-- **shadcn/ui** — Accessible component primitives (table, badge, button, dialog, command, etc.)
-- **Tailwind CSS v4** — Utility-first styling
-- **Vite 8** — Dev server and bundler
-- **TypeScript 6** — Type safety throughout
+It connects to the `td serve` backend API and provides a filterable, sortable data table for managing issues through their lifecycle.
 
 ## Getting Started
 

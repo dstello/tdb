@@ -20,13 +20,21 @@ function EpicsPage() {
     queryFn: () => fetchIssues({ type: 'epic', limit: 100 }),
   })
 
+  const closedEpicsQuery = useQuery({
+    queryKey: ['issues', 'epics-closed'],
+    queryFn: () => fetchIssues({ type: 'epic', status: 'closed', limit: 100 }),
+  })
+
   // Fetch all issues to compute child counts client-side
   const allIssuesQuery = useQuery({
     queryKey: ['issues', 'all-for-epics'],
     queryFn: () => fetchIssues({ limit: 500 }),
   })
 
-  const allEpics = epicsQuery.data?.issues ?? []
+  const allEpics = [
+    ...(epicsQuery.data?.issues ?? []),
+    ...(closedEpicsQuery.data?.issues ?? []),
+  ]
   const allIssues = allIssuesQuery.data?.issues ?? []
 
   const openEpics = allEpics.filter((e) => e.status !== 'closed')
