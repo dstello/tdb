@@ -95,7 +95,21 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
-        {/* Inline script to apply stored theme before paint, avoiding FOUC */}
+        {/*
+          SECURITY NOTE: dangerouslySetInnerHTML is intentional here.
+          This inline script runs before React hydrates to apply the user's
+          stored theme, preventing a Flash of Unstyled Content (FOUC).
+
+          The script is safe because it:
+            1. Only reads from localStorage (no external input)
+            2. Maps the value against a hardcoded allowlist (`m`); any
+               unrecognised value falls back to the 'dark' default
+
+          WARNING: This script MUST NOT interpolate any dynamic or
+          user-controllable data. All values are hardcoded literals.
+          If the theme list changes, update the map here AND in
+          src/lib/theme.tsx to keep them in sync.
+        */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('tdb-theme')||'dark';var m={'light':['',''],'light-hc':['','theme-light-hc'],'dark':['dark',''],'dark-dimmed':['dark','theme-dimmed'],'dark-hc':['dark','theme-dark-hc']};var c=m[t]||m['dark'];var h=document.documentElement;h.className=(''+c[0]+' '+c[1]).trim()||'';h.setAttribute('lang','en');}catch(e){}})();`,
