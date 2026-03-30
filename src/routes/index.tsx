@@ -6,6 +6,7 @@ import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
 import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { KeyboardShortcutsDialog } from '~/components/KeyboardShortcuts'
 
@@ -58,11 +59,14 @@ function Dashboard() {
   })
 
   const allIssues = collectIssues(monitor.data)
-  const issues = allIssues.filter((i) => {
+  const preFiltered = allIssues.filter((i) => {
     if (!showClosed && i.status === 'closed') return false
     if (hideSubtasks && i.parent_id) return false
     return true
   })
+
+  const filters = useIssueFilters(preFiltered)
+  const issues = filters.filtered
 
   // Build parent name lookup for subtask display
   const parentNames = useMemo(() => {
@@ -187,13 +191,6 @@ function Dashboard() {
 
   const tableMeta: IssueTableMeta = {
     onIssueClick: handleIssueClick,
-    showClosed,
-    onToggleClosed: () => setShowClosed((prev) => !prev),
-    hideSubtasks,
-    onToggleSubtasks: () => setHideSubtasks((prev) => !prev),
-    showCreate,
-    onShowCreate: () => setShowCreate(true),
-    onCloseCreate: () => setShowCreate(false),
     focusedRowIndex,
     parentNames,
   }
@@ -218,6 +215,17 @@ function Dashboard() {
           </button>
         </div>
       </div>
+
+      <IssueFilterBar
+        filters={filters}
+        showClosed={showClosed}
+        onToggleClosed={() => setShowClosed((v) => !v)}
+        hideSubtasks={hideSubtasks}
+        onToggleSubtasks={() => setHideSubtasks((v) => !v)}
+        showCreate={showCreate}
+        onShowCreate={() => setShowCreate(true)}
+        onCloseCreate={() => setShowCreate(false)}
+      />
 
       {monitor.error && (
         <div className="text-destructive text-sm py-12 text-center">

@@ -10,13 +10,6 @@ import { CornerDownRight } from "lucide-react"
 
 export interface IssueTableMeta {
   onIssueClick?: (issueId: string) => void
-  showClosed?: boolean
-  onToggleClosed?: () => void
-  hideSubtasks?: boolean
-  onToggleSubtasks?: () => void
-  showCreate?: boolean
-  onShowCreate?: () => void
-  onCloseCreate?: () => void
   focusedRowIndex?: number
   parentNames?: Map<string, string>
 }

@@ -11,13 +11,13 @@ import { statuses, priorities } from '~/components/tasks/data'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
+import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { IssueQuickView } from '~/components/IssueQuickView'
-import { CreateIssueDrawer } from '~/components/CreateIssueDialog'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import {
   Mountain,
-  Plus,
   ArrowLeft,
   Play,
   Eye,
@@ -28,7 +28,6 @@ import {
   LockOpen,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
-import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
 
 export const Route = createFileRoute('/epics/$id')({
   component: EpicDetailPage,
@@ -87,9 +86,12 @@ function EpicDetailPage() {
   const closedChildren = children.filter((c) => c.status === 'closed').length
   const progress = totalChildren > 0 ? Math.round((closedChildren / totalChildren) * 100) : 0
 
-  const filteredChildren = showClosed
+  const preFiltered = showClosed
     ? children
     : children.filter((c) => c.status !== 'closed')
+
+  const filters = useIssueFilters(preFiltered)
+  const filteredChildren = filters.filtered
 
   const transitionMut = useMutation({
     mutationFn: async ({ actions }: { actions: string[] }) => {
@@ -110,11 +112,6 @@ function EpicDetailPage() {
 
   const tableMeta: IssueTableMeta = {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
-    showClosed,
-    onToggleClosed: () => setShowClosed((prev) => !prev),
-    showCreate,
-    onShowCreate: () => setShowCreate(true),
-    onCloseCreate: () => setShowCreate(false),
     parentNames,
   }
 
@@ -205,33 +202,26 @@ function EpicDetailPage() {
 
       {/* Subtasks header with view toggle */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Subtasks</h2>
-          {totalChildren > 0 && viewMode === 'board' && (
-            <button
-              onClick={() => setShowClosed(!showClosed)}
-              className={cn(
-                "text-[11px] transition-colors",
-                showClosed ? "text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground"
-              )}
-            >
-              {showClosed ? 'Hide closed' : `+ ${closedChildren} closed`}
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-          <Button size="sm" variant="secondary" onClick={() => setShowCreate(true)}>
-            <Plus className="size-3.5 mr-1" />
-            Add Subtask
-          </Button>
-        </div>
+        <h2 className="text-sm font-medium text-muted-foreground">Subtasks</h2>
+        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
       </div>
+
+      {/* Filter bar */}
+      <IssueFilterBar
+        filters={filters}
+        showClosed={showClosed}
+        onToggleClosed={() => setShowClosed((v) => !v)}
+        showCreate={showCreate}
+        onShowCreate={() => setShowCreate(true)}
+        onCloseCreate={() => setShowCreate(false)}
+        createParentId={id}
+        createParentTitle={epic.title}
+      />
 
       {/* Content based on view mode */}
       {viewMode === 'board' ? (
         <SwimlaneBoardView
-          issues={children}
+          issues={filteredChildren}
           onIssueClick={(issueId) => setSelectedIssueId(issueId)}
           showClosed={showClosed}
           isLoading={childrenQuery.isLoading}
@@ -246,15 +236,6 @@ function EpicDetailPage() {
         <IssueQuickView
           issueId={selectedIssueId}
           onClose={() => setSelectedIssueId(null)}
-        />
-      )}
-
-      {/* Create subtask drawer */}
-      {showCreate && (
-        <CreateIssueDrawer
-          onClose={() => setShowCreate(false)}
-          parentId={id}
-          parentTitle={epic.title}
         />
       )}
     </div>

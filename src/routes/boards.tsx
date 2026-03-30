@@ -13,6 +13,7 @@ import {
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
 import { ViewToggle, type ViewMode } from '~/components/tasks/view-toggle'
+import { IssueFilterBar, useIssueFilters } from '~/components/tasks/issue-filter-bar'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { Button } from '~/components/ui/button'
@@ -26,7 +27,6 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 import {
-  Plus,
   Pencil,
   Trash2,
   LayoutGrid,
@@ -80,18 +80,21 @@ function BoardsPage() {
   })
 
   const boardIssues = boardDetailQuery.data?.issues ?? []
-  const issues: Issue[] = boardIssues.map((bi) => bi.issue)
-  const filteredIssues = showClosed ? issues : issues.filter((i) => i.status !== 'closed')
+  const allIssues: Issue[] = boardIssues.map((bi) => bi.issue)
+  const preFiltered = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
+
+  const filters = useIssueFilters(preFiltered)
+  const issues = filters.filtered
 
   const parentNames = useMemo(() => {
     const map = new Map<string, string>()
-    for (const issue of issues) {
-      if (issue.type === 'epic' || issues.some((i) => i.parent_id === issue.id)) {
+    for (const issue of allIssues) {
+      if (issue.type === 'epic' || allIssues.some((i) => i.parent_id === issue.id)) {
         map.set(issue.id, issue.title)
       }
     }
     return map
-  }, [issues])
+  }, [allIssues])
 
   const visibleColumns = showClosed
     ? swimlaneColumns
@@ -99,8 +102,6 @@ function BoardsPage() {
 
   const tableMeta: IssueTableMeta = {
     onIssueClick: (issueId) => setSelectedIssueId(issueId),
-    showClosed,
-    onToggleClosed: () => setShowClosed((prev) => !prev),
     parentNames,
   }
 
@@ -123,7 +124,7 @@ function BoardsPage() {
             {showClosed ? 'Hide Closed' : 'Show Closed'}
           </Button>
           <Button size="sm" onClick={() => setShowCreateDialog(true)}>
-            <Plus className="size-3.5 mr-1" />
+            <LayoutGrid className="size-3.5 mr-1" />
             New Board
           </Button>
         </div>
@@ -193,6 +194,11 @@ function BoardsPage() {
         </div>
       )}
 
+      {/* Filter bar */}
+      {selectedBoardId && (
+        <IssueFilterBar filters={filters} />
+      )}
+
       {/* Board/List content */}
       {selectedBoardId && (
         viewMode === 'board' ? (
@@ -204,7 +210,7 @@ function BoardsPage() {
             emptyMessage="No issues match this board's query."
           />
         ) : (
-          <DataTable data={filteredIssues} columns={columns} meta={tableMeta} />
+          <DataTable data={issues} columns={columns} meta={tableMeta} />
         )
       )}
 

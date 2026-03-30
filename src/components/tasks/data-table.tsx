@@ -24,7 +24,6 @@ import {
 } from "~/components/ui/table"
 
 import { DataTablePagination } from "./data-table-pagination"
-import { DataTableToolbar } from "./data-table-toolbar"
 import type { IssueTableMeta } from "./columns"
 
 interface DataTableProps<TData, TValue> {
@@ -41,9 +40,6 @@ export function DataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ type: false })
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
   const [sorting, setSorting] = React.useState<SortingState>([])
 
   const table = useReactTable({
@@ -54,7 +50,6 @@ export function DataTable<TData, TValue>({
       sorting,
       columnVisibility,
       rowSelection,
-      columnFilters,
     },
     initialState: {
       pagination: {
@@ -64,10 +59,8 @@ export function DataTable<TData, TValue>({
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
@@ -76,13 +69,11 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-3">
-      <DataTableToolbar table={table} />
       <div className="overflow-hidden rounded-lg border border-border/60">
         <Table className="table-fixed w-full">
           <colgroup>
             {table.getVisibleLeafColumns().map((col) => {
               const explicitSize = col.columnDef.size
-              // TanStack Table default size is 150; only apply widths we explicitly set
               const hasExplicitSize = explicitSize !== undefined && explicitSize !== 150
               return <col key={col.id} style={hasExplicitSize ? { width: explicitSize } : undefined} />
             })}
@@ -119,7 +110,6 @@ export function DataTable<TData, TValue>({
                     data-focused={row.index === (meta as IssueTableMeta | undefined)?.focusedRowIndex}
                     className="border-b border-border/40 transition-colors cursor-pointer data-[focused=true]:bg-muted/50"
                     onClick={(e) => {
-                      // Don't trigger row click if clicking checkbox, button, or actions
                       const target = e.target as HTMLElement
                       if (
                         target.closest('[role="checkbox"]') ||
