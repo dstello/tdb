@@ -25,6 +25,24 @@ export class ApiError extends Error {
   }
 }
 
+const SAFE_ERROR_MESSAGES: Record<string, string> = {
+  VALIDATION_ERROR: 'Please check your input and try again.',
+  NOT_FOUND: 'The requested item could not be found.',
+  CONFLICT: 'This action conflicts with the current state.',
+  ALREADY_EXISTS: 'An item with that name already exists.',
+  INTERNAL: 'An internal error occurred. Please try again.',
+}
+
+export function getSafeErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.details?.code) {
+    return SAFE_ERROR_MESSAGES[error.details.code] ?? 'Something went wrong. Please try again.'
+  }
+  if (error instanceof Error && error.message === 'Failed to fetch') {
+    return 'Unable to connect to the server.'
+  }
+  return 'Something went wrong. Please try again.'
+}
+
 // --- Types ---
 
 export interface Issue {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMonitor, fetchStats, deleteIssue, type Issue } from '~/lib/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchMonitor, fetchStats, deleteIssue, getSafeErrorMessage, type Issue } from '~/lib/api'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
@@ -53,6 +53,16 @@ function Dashboard() {
     showClosed, toggleClosed,
     hideSubtasks, toggleSubtasks,
   } = useSearchParamFilters(search, { pageKey: 'issues', defaultView: 'list', defaultHideSubtasks: true })
+
+  const deleteMut = useMutation({
+    mutationFn: (issueId: string) => deleteIssue(issueId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      setFocusedRowIndex((prev) => Math.max(prev - 1, 0))
+    },
+    onError: console.error,
+  })
 
   const monitor = useQuery({
     queryKey: ['monitor', true],
@@ -155,14 +165,9 @@ function Dashboard() {
         const issue = getFocusedIssue()
         if (issue) {
           e.preventDefault()
+          if (deleteMut.isPending) return
           if (confirm(`Delete "${issue.title}"?`)) {
-            deleteIssue(issue.id)
-              .then(() => {
-                queryClient.invalidateQueries({ queryKey: ['monitor'] })
-                queryClient.invalidateQueries({ queryKey: ['stats'] })
-                setFocusedRowIndex((prev) => Math.max(prev - 1, 0))
-              })
-              .catch(() => {})
+            deleteMut.mutate(issue.id)
           }
         }
         return
@@ -186,7 +191,7 @@ function Dashboard() {
 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [issues, focusedRowIndex, selectedIssueId, showCreate, getFocusedIssue, navigate, queryClient])
+  }, [issues, focusedRowIndex, selectedIssueId, showCreate, getFocusedIssue, navigate, queryClient, deleteMut.isPending])
 
   const handleIssueClick = useCallback((issueId: string) => {
     const issue = issues.find((i) => i.id === issueId)
@@ -237,7 +242,7 @@ function Dashboard() {
 
       {monitor.error && (
         <div className="text-destructive text-sm py-12 text-center">
-          Failed to load: {monitor.error instanceof Error ? monitor.error.message : 'Unknown error'}
+          Failed to load: {getSafeErrorMessage(monitor.error)}
           <br />
           <span className="text-muted-foreground">Is `td serve` running?</span>
         </div>

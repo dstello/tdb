@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchBoards,
@@ -7,6 +8,7 @@ import {
   createBoard,
   updateBoard,
   deleteBoard,
+  getSafeErrorMessage,
   type Board,
   type Issue,
 } from '~/lib/api'
@@ -177,7 +179,9 @@ function BoardsPage() {
                 variant="ghost"
                 size="icon"
                 className="size-6 text-destructive"
+                disabled={deleteMut.isPending}
                 onClick={() => {
+                  if (deleteMut.isPending) return
                   if (confirm('Delete this board?')) deleteMut.mutate(selectedBoardId)
                 }}
               >
@@ -191,7 +195,7 @@ function BoardsPage() {
       {/* Error state */}
       {boardsQuery.error && (
         <div className="text-destructive text-sm py-12 text-center">
-          Failed to load boards: {boardsQuery.error instanceof Error ? boardsQuery.error.message : 'Unknown error'}
+          Failed to load boards: {getSafeErrorMessage(boardsQuery.error)}
         </div>
       )}
 
@@ -250,6 +254,11 @@ function BoardsPage() {
 
 // --- Board Form Dialog ---
 
+const boardFormSchema = z.object({
+  name: z.string().min(1, 'Board name is required').max(200),
+  query: z.string().max(500).optional(),
+})
+
 function BoardFormDialog({
   board,
   onClose,
@@ -260,6 +269,7 @@ function BoardFormDialog({
   const queryClient = useQueryClient()
   const [name, setName] = useState(board?.name ?? '')
   const [query, setQuery] = useState(board?.query ?? '')
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   const createMut = useMutation({
     mutationFn: () => createBoard({ name, query: query || undefined }),
@@ -284,7 +294,12 @@ function BoardFormDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    setValidationError(null)
+    const result = boardFormSchema.safeParse({ name, query: query || undefined })
+    if (!result.success) {
+      setValidationError(result.error.issues[0].message)
+      return
+    }
     if (isEditing) {
       updateMut.mutate()
     } else {
@@ -326,9 +341,12 @@ function BoardFormDialog({
               Filter issues with TDQ syntax. Leave empty to show all issues.
             </p>
           </div>
+          {validationError && (
+            <p className="text-sm text-destructive">{validationError}</p>
+          )}
           {error && (
             <p className="text-sm text-destructive">
-              {error instanceof Error ? error.message : 'Failed to save'}
+              {getSafeErrorMessage(error)}
             </p>
           )}
           <DialogFooter>

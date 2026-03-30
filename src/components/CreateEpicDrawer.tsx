@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createIssue, createBoard, type CreateIssueInput } from '~/lib/api'
+import { z } from 'zod'
+import { createIssue, createBoard, getSafeErrorMessage, type CreateIssueInput } from '~/lib/api'
 import {
   Drawer,
   DrawerClose,
@@ -16,6 +17,12 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
 
+const createEpicSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(500),
+  priority: z.string().optional(),
+  description: z.string().max(10000).optional(),
+})
+
 const priorityOptions = [
   { value: 'P0', label: 'P0' },
   { value: 'P1', label: 'P1' },
@@ -27,6 +34,7 @@ const priorityOptions = [
 export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [form, setForm] = useState({
     title: '',
     priority: 'P2',
@@ -61,9 +69,14 @@ export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
   })
 
   const handleSubmit = useCallback(() => {
-    if (form.title.trim() && !mutation.isPending) {
-      mutation.mutate()
+    if (mutation.isPending) return
+    setValidationError(null)
+    const result = createEpicSchema.safeParse(form)
+    if (!result.success) {
+      setValidationError(result.error.issues[0].message)
+      return
     }
+    mutation.mutate()
   }, [form, mutation])
 
   useEffect(() => {
@@ -130,9 +143,12 @@ export function CreateEpicDrawer({ onClose }: { onClose: () => void }) {
               />
             </div>
 
+            {validationError && (
+              <p className="text-sm text-destructive">{validationError}</p>
+            )}
             {mutation.error && (
               <p className="text-sm text-destructive">
-                {mutation.error instanceof Error ? mutation.error.message : 'Failed to create epic'}
+                {getSafeErrorMessage(mutation.error)}
               </p>
             )}
           </div>

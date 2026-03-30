@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchIssue,
@@ -7,6 +8,7 @@ import {
   addComment,
   deleteIssue,
   updateIssue,
+  getSafeErrorMessage,
 } from '~/lib/api'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -16,6 +18,9 @@ import { statuses, types, priorities } from '~/components/tasks/data'
 import { CalendarClock, CalendarCheck, AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/issues/$id')({
+  params: z.object({
+    id: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(128),
+  }),
   component: IssueDetailPage,
 })
 
@@ -104,7 +109,7 @@ function IssueDetailPage() {
   if (error || !data)
     return (
       <div className="text-destructive py-12 text-center">
-        Failed to load issue: {error instanceof Error ? error.message : 'Not found'}
+        Failed to load issue: {getSafeErrorMessage(error)}
       </div>
     )
 
@@ -148,7 +153,9 @@ function IssueDetailPage() {
             variant="ghost"
             size="sm"
             className="text-destructive hover:text-destructive"
+            disabled={deleteMut.isPending}
             onClick={() => {
+              if (deleteMut.isPending) return
               if (confirm('Delete this issue?')) deleteMut.mutate()
             }}
           >
@@ -288,7 +295,7 @@ function IssueDetailPage() {
               ))}
               {transitionMut.error && (
                 <span className="text-xs text-destructive self-center">
-                  {transitionMut.error instanceof Error ? transitionMut.error.message : 'Failed'}
+                  {getSafeErrorMessage(transitionMut.error)}
                 </span>
               )}
             </div>

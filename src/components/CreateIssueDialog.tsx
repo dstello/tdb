@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createIssue, type CreateIssueInput } from '~/lib/api'
+import { z } from 'zod'
+import { createIssue, getSafeErrorMessage, type CreateIssueInput } from '~/lib/api'
 import {
   Drawer,
   DrawerClose,
@@ -14,6 +15,15 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
+
+const createIssueSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(500),
+  type: z.string().optional(),
+  priority: z.string().optional(),
+  description: z.string().max(10000).optional(),
+  labels: z.array(z.string().max(100)).max(20).optional(),
+  parent_id: z.string().regex(/^[a-zA-Z0-9_-]*$/).optional(),
+})
 
 const typeOptions = [
   { value: 'task', label: 'Task' },
@@ -39,6 +49,7 @@ interface CreateIssueDrawerProps {
 
 export function CreateIssueDrawer({ onClose, parentId, parentTitle }: CreateIssueDrawerProps) {
   const queryClient = useQueryClient()
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [form, setForm] = useState<CreateIssueInput>({
     title: '',
     type: 'task',
@@ -69,9 +80,14 @@ export function CreateIssueDrawer({ onClose, parentId, parentTitle }: CreateIssu
   })
 
   const handleSubmit = useCallback(() => {
-    if (form.title.trim() && !mutation.isPending) {
-      mutation.mutate(form)
+    if (mutation.isPending) return
+    setValidationError(null)
+    const result = createIssueSchema.safeParse(form)
+    if (!result.success) {
+      setValidationError(result.error.issues[0].message)
+      return
     }
+    mutation.mutate(form)
   }, [form, mutation])
 
   // Cmd+Enter to submit from anywhere in the drawer
@@ -213,9 +229,12 @@ export function CreateIssueDrawer({ onClose, parentId, parentTitle }: CreateIssu
             </div>
             */}
 
+            {validationError && (
+              <p className="text-sm text-destructive">{validationError}</p>
+            )}
             {mutation.error && (
               <p className="text-sm text-destructive">
-                {mutation.error instanceof Error ? mutation.error.message : 'Failed to create issue'}
+                {getSafeErrorMessage(mutation.error)}
               </p>
             )}
           </div>

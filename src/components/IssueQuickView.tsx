@@ -8,6 +8,7 @@ import {
   addComment,
   deleteIssue,
   updateIssue,
+  getSafeErrorMessage,
   type Issue,
 } from "~/lib/api";
 import {
@@ -357,7 +358,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
 
         {error && (
           <div className="text-destructive text-sm text-center py-8">
-            {error instanceof Error ? error.message : "Failed to load"}
+            {getSafeErrorMessage(error)}
           </div>
         )}
 
@@ -458,9 +459,7 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
                 </div>
                 {editMut.error && (
                   <p className="text-sm text-destructive">
-                    {editMut.error instanceof Error
-                      ? editMut.error.message
-                      : "Failed to save"}
+                    {getSafeErrorMessage(editMut.error)}
                   </p>
                 )}
                 <div className="flex gap-2 pt-1">
@@ -724,7 +723,9 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
               variant="ghost"
               size="sm"
               className="text-destructive/60 hover:text-destructive w-fit"
+              disabled={deleteMut.isPending}
               onClick={() => {
+                if (deleteMut.isPending) return;
                 if (confirm("Delete this issue?")) deleteMut.mutate();
               }}
             >
