@@ -4,19 +4,33 @@ import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchIssue,
+  fetchIssues,
   transitionIssue,
   addComment,
   deleteIssue,
   updateIssue,
   getSafeErrorMessage,
+  type Issue,
 } from '~/lib/api'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { Textarea } from '~/components/ui/textarea'
 import { Separator } from '~/components/ui/separator'
 import { statuses, types, priorities } from '~/components/tasks/data'
-import { CalendarClock, CalendarCheck, AlertCircle } from 'lucide-react'
+import {
+  Pencil,
+  Play,
+  Eye,
+  ShieldBan,
+  XCircle,
+  Check,
+  RotateCcw,
+  LockOpen,
+  Mountain,
+} from 'lucide-react'
 import { getActivityIcon } from '~/lib/activity-icons'
+import { cn } from '~/lib/utils'
 
 export const Route = createFileRoute('/issues/$id')({
   params: z.object({
@@ -25,29 +39,46 @@ export const Route = createFileRoute('/issues/$id')({
   component: IssueDetailPage,
 })
 
-const transitionMap: Record<string, { action: string; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }[]> = {
+const typeOptions = [
+  { value: 'task', label: 'Task' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'feature', label: 'Feature' },
+  { value: 'epic', label: 'Epic' },
+  { value: 'chore', label: 'Chore' },
+]
+
+const priorityOptions = [
+  { value: 'P0', label: 'P0' },
+  { value: 'P1', label: 'P1' },
+  { value: 'P2', label: 'P2' },
+  { value: 'P3', label: 'P3' },
+  { value: 'P4', label: 'P4' },
+]
+
+const transitionMap: Record<string, { actions: string[]; label: string; icon: React.ComponentType<{ className?: string }>; className: string }[]> = {
   open: [
-    { action: 'start', label: 'Start', variant: 'default' },
-    { action: 'review', label: 'Submit for Review', variant: 'secondary' },
-    { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'destructive' },
+    { actions: ['start'], label: 'Start', icon: Play, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['review'], label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { actions: ['block'], label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   in_progress: [
-    { action: 'review', label: 'Submit for Review', variant: 'default' },
-    { action: 'block', label: 'Block', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'destructive' },
+    { actions: ['review'], label: 'Review', icon: Eye, className: 'text-blue-400 hover:bg-blue-400/10' },
+    { actions: ['close', 'reopen'], label: 'Back to Ready', icon: RotateCcw, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['block'], label: 'Block', icon: ShieldBan, className: 'text-amber-400 hover:bg-amber-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   in_review: [
-    { action: 'approve', label: 'Approve', variant: 'default' },
-    { action: 'reject', label: 'Reject', variant: 'destructive' },
-    { action: 'close', label: 'Close', variant: 'destructive' },
+    { actions: ['approve'], label: 'Approve', icon: Check, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['reject'], label: 'Back to Ready', icon: RotateCcw, className: 'text-muted-foreground hover:bg-muted-foreground/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   blocked: [
-    { action: 'unblock', label: 'Unblock', variant: 'default' },
-    { action: 'close', label: 'Close', variant: 'destructive' },
+    { actions: ['unblock'], label: 'Unblock', icon: LockOpen, className: 'text-emerald-400 hover:bg-emerald-400/10' },
+    { actions: ['close'], label: 'Close', icon: XCircle, className: 'text-red-400 hover:bg-red-400/10' },
   ],
   closed: [
-    { action: 'reopen', label: 'Reopen', variant: 'default' },
+    { actions: ['reopen'], label: 'Reopen', icon: RotateCcw, className: 'text-blue-400 hover:bg-blue-400/10' },
   ],
 }
 
@@ -56,22 +87,46 @@ function IssueDetailPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [commentText, setCommentText] = useState('')
-  const [editingDefer, setEditingDefer] = useState(false)
-  const [editingDue, setEditingDue] = useState(false)
-  const [deferValue, setDeferValue] = useState('')
-  const [dueValue, setDueValue] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState<{
+    title: string
+    description: string
+    type: string
+    priority: string
+  } | null>(null)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['issue', id],
     queryFn: () => fetchIssue(id),
   })
 
+  const issue = data?.issue
+
+  const parentQuery = useQuery({
+    queryKey: ['issue', issue?.parent_id],
+    queryFn: () => fetchIssue(issue!.parent_id!),
+    enabled: !!issue?.parent_id,
+  })
+
+  const childrenQuery = useQuery({
+    queryKey: ['issues', 'children', id],
+    queryFn: () => fetchIssues({ parent: id, limit: 500 }),
+    enabled: issue?.type === 'epic',
+    select: (data) => data.issues,
+  })
+
   const transitionMut = useMutation({
-    mutationFn: ({ action }: { action: string }) =>
-      transitionIssue(id, action as any),
+    mutationFn: async ({ actions }: { actions: string[] }) => {
+      let result
+      for (const action of actions) {
+        result = await transitionIssue(id, action as any)
+      }
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['issue', id] })
       queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
     },
   })
 
@@ -88,27 +143,41 @@ function IssueDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['monitor'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['issues'] })
       router.navigate({ to: '/' })
     },
   })
 
-  const deferMut = useMutation({
-    mutationFn: (date: string | null) =>
-      updateIssue(id, { defer_until: date === '' ? null : date }),
+  const editMut = useMutation({
+    mutationFn: (fields: { title?: string; description?: string; type?: string; priority?: string }) =>
+      updateIssue(id, fields),
     onSuccess: () => {
-      setEditingDefer(false)
+      setIsEditing(false)
+      setEditForm(null)
       queryClient.invalidateQueries({ queryKey: ['issue', id] })
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
     },
   })
 
-  const dueMut = useMutation({
-    mutationFn: (date: string | null) =>
-      updateIssue(id, { due_date: date === '' ? null : date }),
-    onSuccess: () => {
-      setEditingDue(false)
-      queryClient.invalidateQueries({ queryKey: ['issue', id] })
-    },
-  })
+  const startEditing = (issue: Issue) => {
+    setEditForm({
+      title: issue.title,
+      description: issue.description ?? '',
+      type: issue.type,
+      priority: issue.priority,
+    })
+    setIsEditing(true)
+  }
+
+  const saveEdit = () => {
+    if (!editForm) return
+    editMut.mutate(editForm)
+  }
+
+  const cancelEdit = () => {
+    setIsEditing(false)
+    setEditForm(null)
+  }
 
   if (isLoading) return <div className="text-muted-foreground py-12 text-center">Loading...</div>
   if (error || !data)
@@ -118,11 +187,13 @@ function IssueDetailPage() {
       </div>
     )
 
-  const { issue, logs, comments, dependencies, blocked_by } = data
-  const transitions = transitionMap[issue.status] ?? []
-  const status = statuses.find((s) => s.value === issue.status)
-  const issueType = types.find((t) => t.value === issue.type)
-  const priority = priorities.find((p) => p.value === issue.priority)
+  const { issue: loadedIssue, logs, comments, dependencies, blocked_by } = data
+  const transitions = transitionMap[loadedIssue.status] ?? []
+  const status = statuses.find((s) => s.value === loadedIssue.status)
+  const issueType = types.find((t) => t.value === loadedIssue.type)
+  const priority = priorities.find((p) => p.value === loadedIssue.priority)
+  const parentIssue = parentQuery.data?.issue
+  const children = childrenQuery.data ?? []
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -140,7 +211,7 @@ function IssueDetailPage() {
                 {issueType.label}
               </span>
             )}
-            <span className="text-[11px] font-mono text-muted-foreground/60">{issue.id}</span>
+            <span className="text-[11px] font-mono text-muted-foreground/60">{loadedIssue.id}</span>
             {status && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${(status as any).className ?? ''}`}>
                 <status.icon className="size-3" />
@@ -154,147 +225,179 @@ function IssueDetailPage() {
               </span>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            disabled={deleteMut.isPending}
-            onClick={() => {
-              if (deleteMut.isPending) return
-              if (confirm('Delete this issue?')) deleteMut.mutate()
-            }}
-          >
-            Delete
-          </Button>
+          <div className="flex items-center gap-1 shrink-0">
+            {!isEditing && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground gap-1"
+                onClick={() => startEditing(loadedIssue)}
+              >
+                <Pencil className="size-3.5" />
+                Edit
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive/60 hover:text-destructive"
+              disabled={deleteMut.isPending}
+              onClick={() => {
+                if (deleteMut.isPending) return
+                if (confirm('Delete this issue?')) deleteMut.mutate()
+              }}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
-        <h1 className="text-xl font-bold mb-2">{issue.title}</h1>
-        {issue.description && (
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{issue.description}</p>
+
+        {/* Parent epic link */}
+        {parentIssue && (
+          <Link
+            to="/epics/$id"
+            params={{ id: parentIssue.id }}
+            className="inline-flex items-center gap-1.5 text-xs text-purple-400/80 hover:text-purple-400 transition-colors mb-2"
+          >
+            <Mountain className="size-3" />
+            {parentIssue.title}
+          </Link>
+        )}
+
+        {/* Edit mode */}
+        {isEditing && editForm ? (
+          <div className="flex flex-col gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Title</label>
+              <Input
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveEdit() }
+                  if (e.key === 'Escape') cancelEdit()
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Type</label>
+                <div className="flex flex-wrap gap-1">
+                  {typeOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, type: opt.value })}
+                      className={cn(
+                        'px-2.5 py-1 text-xs rounded-md transition-colors',
+                        editForm.type === opt.value
+                          ? 'bg-foreground/10 text-foreground font-medium'
+                          : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Priority</label>
+                <div className="flex flex-wrap gap-1">
+                  {priorityOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, priority: opt.value })}
+                      className={cn(
+                        'px-2.5 py-1 text-xs rounded-md transition-colors',
+                        editForm.priority === opt.value
+                          ? 'bg-foreground/10 text-foreground font-medium'
+                          : 'text-muted-foreground/60 hover:text-muted-foreground hover:bg-foreground/5'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">Description</label>
+              <Textarea
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                rows={4}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveEdit() }
+                  if (e.key === 'Escape') cancelEdit()
+                }}
+              />
+            </div>
+            {editMut.error && (
+              <p className="text-sm text-destructive">{getSafeErrorMessage(editMut.error)}</p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button size="sm" onClick={saveEdit} disabled={!editForm.title.trim() || editMut.isPending}>
+                {editMut.isPending ? 'Saving...' : 'Save'}
+                <span className="ml-1 text-[10px] opacity-50">⌘↵</span>
+              </Button>
+              <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={cancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold mb-2">{loadedIssue.title}</h1>
+            {loadedIssue.description && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{loadedIssue.description}</p>
+            )}
+          </>
         )}
 
         {/* Meta */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-xs text-muted-foreground">
-          {issue.points && <span>{issue.points} pts</span>}
-          {issue.sprint && <span>Sprint: {issue.sprint}</span>}
-          {issue.labels?.length > 0 && (
+          {loadedIssue.points && <span>{loadedIssue.points} pts</span>}
+          {loadedIssue.sprint && <span>Sprint: {loadedIssue.sprint}</span>}
+          {loadedIssue.labels?.length > 0 && (
             <span className="flex gap-1">
-              {issue.labels.map((l) => (
+              {loadedIssue.labels.map((l) => (
                 <Badge key={l} variant="outline" className="text-xs">
                   {l}
                 </Badge>
               ))}
             </span>
           )}
-          <span>Created: {new Date(issue.created_at).toLocaleDateString()}</span>
+          <span>Created: {new Date(loadedIssue.created_at).toLocaleDateString()}</span>
         </div>
 
-        {/* Deferral & Due Date */}
-        <div className="flex flex-col gap-2 mt-4">
-          {/* Defer */}
-          <div className="flex items-center gap-2 text-xs">
-            <CalendarClock className="size-3.5 text-muted-foreground shrink-0" />
-            {editingDefer ? (
-              <div className="flex items-center gap-1.5">
-                <Input
-                  type="date"
-                  value={deferValue}
-                  onChange={(e) => setDeferValue(e.target.value)}
-                  className="h-6 text-xs w-40"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') deferMut.mutate(deferValue || null)
-                    if (e.key === 'Escape') setEditingDefer(false)
-                  }}
-                />
-                <Button size="xs" onClick={() => deferMut.mutate(deferValue || null)} disabled={deferMut.isPending}>Save</Button>
-                <Button size="xs" variant="ghost" onClick={() => setEditingDefer(false)}>✕</Button>
-              </div>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                {(() => {
-                  const deferUntil = issue.defer_until ? new Date(issue.defer_until) : null
-                  const isDeferred = deferUntil && deferUntil > new Date()
-                  if (isDeferred) return <span className="text-muted-foreground">Deferred until {deferUntil.toLocaleDateString()}</span>
-                  if (issue.defer_until) return <span className="text-muted-foreground">Was deferred until {new Date(issue.defer_until).toLocaleDateString()}</span>
-                  return <span className="text-muted-foreground/60">No deferral</span>
-                })()}
-                <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px]"
-                  onClick={() => { setEditingDefer(true); setDeferValue(issue.defer_until ?? '') }}>
-                  {issue.defer_until ? 'Edit' : 'Set'}
-                </Button>
-                {issue.defer_until && (
-                  <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px] text-destructive"
-                    onClick={() => deferMut.mutate(null)} disabled={deferMut.isPending}>Clear</Button>
-                )}
-              </span>
-            )}
-          </div>
-
-          {/* Due */}
-          <div className="flex items-center gap-2 text-xs">
-            {(() => {
-              const dueDate = issue.due_date ? new Date(issue.due_date) : null
-              const isOverdue = dueDate && dueDate < new Date()
-              const isDueSoon = dueDate && !isOverdue && dueDate.getTime() - Date.now() < 3 * 86400000
-              return (
-                <>
-                  {isOverdue ? (
-                    <AlertCircle className="size-3.5 text-destructive shrink-0" />
-                  ) : (
-                    <CalendarCheck className={`size-3.5 shrink-0 ${isDueSoon ? 'text-amber-500' : 'text-muted-foreground'}`} />
-                  )}
-                  {editingDue ? (
-                    <div className="flex items-center gap-1.5">
-                      <Input
-                        type="date"
-                        value={dueValue}
-                        onChange={(e) => setDueValue(e.target.value)}
-                        className="h-6 text-xs w-40"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') dueMut.mutate(dueValue || null)
-                          if (e.key === 'Escape') setEditingDue(false)
-                        }}
-                      />
-                      <Button size="xs" onClick={() => dueMut.mutate(dueValue || null)} disabled={dueMut.isPending}>Save</Button>
-                      <Button size="xs" variant="ghost" onClick={() => setEditingDue(false)}>✕</Button>
-                    </div>
-                  ) : (
-                    <span className="flex items-center gap-1.5">
-                      {dueDate ? (
-                        <span className={isOverdue ? 'text-destructive font-medium' : isDueSoon ? 'text-amber-500 font-medium' : 'text-muted-foreground'}>
-                          Due {dueDate.toLocaleDateString()}{isOverdue && ' (overdue)'}{isDueSoon && ' (due soon)'}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/60">No due date</span>
-                      )}
-                      <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px]"
-                        onClick={() => { setEditingDue(true); setDueValue(issue.due_date ?? '') }}>
-                        {issue.due_date ? 'Edit' : 'Set'}
-                      </Button>
-                      {issue.due_date && (
-                        <Button size="xs" variant="ghost" className="h-4 px-1 text-[10px] text-destructive"
-                          onClick={() => dueMut.mutate(null)} disabled={dueMut.isPending}>Clear</Button>
-                      )}
-                    </span>
-                  )}
-                </>
-              )
-            })()}
-          </div>
-        </div>
+        {/* Epic children link */}
+        {loadedIssue.type === 'epic' && children.length > 0 && (
+          <Link
+            to="/epics/$id"
+            params={{ id: loadedIssue.id }}
+            className="inline-flex items-center gap-1.5 text-xs text-purple-400/80 hover:text-purple-400 transition-colors mt-3"
+          >
+            <Mountain className="size-3" />
+            {children.length} subtask{children.length !== 1 ? 's' : ''} — View epic board →
+          </Link>
+        )}
 
         {/* Transitions */}
         {transitions.length > 0 && (
           <>
             <Separator className="my-4" />
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1 flex-wrap">
               {transitions.map((t) => (
                 <Button
-                  key={t.action}
-                  variant={t.variant}
+                  key={t.actions.join('-')}
+                  variant="ghost"
                   size="sm"
-                  onClick={() => transitionMut.mutate({ action: t.action })}
+                  className={cn('gap-1.5', t.className)}
+                  onClick={() => transitionMut.mutate({ actions: t.actions })}
                   disabled={transitionMut.isPending}
                 >
+                  <t.icon className="size-3.5" />
                   {t.label}
                 </Button>
               ))}

@@ -113,6 +113,8 @@ export interface IssueFilterBarProps {
   // Create drawer context (for subtask creation under an epic)
   createParentId?: string
   createParentTitle?: string
+  // Custom create button label (default: "New Issue")
+  createLabel?: string
 }
 
 export function IssueFilterBar({
@@ -126,6 +128,7 @@ export function IssueFilterBar({
   onCloseCreate,
   createParentId,
   createParentTitle,
+  createLabel,
 }: IssueFilterBarProps) {
   return (
     <>
@@ -191,8 +194,8 @@ export function IssueFilterBar({
           {onShowCreate && (
             <Button size="sm" onClick={onShowCreate}>
               <Plus />
-              New Issue
-              <Kbd>N</Kbd>
+              {createLabel ?? 'New Issue'}
+              {!createLabel && <Kbd>N</Kbd>}
             </Button>
           )}
         </div>

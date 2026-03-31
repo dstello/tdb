@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useState, useMemo, useCallback } from 'react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -31,7 +31,6 @@ import {
 import {
   Pencil,
   Trash2,
-  LayoutGrid,
 } from 'lucide-react'
 import { validateIssueSearch } from '~/lib/search-params'
 import { useSearchParamFilters } from '~/lib/use-search-param-filters'
@@ -51,6 +50,7 @@ const swimlaneColumns = [
 
 function BoardsPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const search = Route.useSearch()
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null)
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null)
@@ -111,39 +111,33 @@ function BoardsPage() {
     [showClosed]
   )
 
+  const handleIssueClick = useCallback((issueId: string) => {
+    const issue = allIssues.find((i) => i.id === issueId)
+    if (issue?.type === 'epic') {
+      navigate({ to: '/epics/$id', params: { id: issueId } })
+    } else {
+      setSelectedIssueId(issueId)
+    }
+  }, [allIssues, navigate])
+
   const tableMeta: IssueTableMeta = {
-    onIssueClick: (issueId) => setSelectedIssueId(issueId),
+    onIssueClick: handleIssueClick,
     parentNames,
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4">
+    <div className="flex h-full flex-1 flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <LayoutGrid className="size-5 text-muted-foreground" />
-          <h2 className="text-lg font-medium tracking-tight">Boards</h2>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="text-lg font-medium tracking-tight">Boards</h2>
+        <div className="flex items-center gap-4">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleClosed}
-            className="text-xs"
-          >
-            {showClosed ? 'Hide Closed' : 'Show Closed'}
-          </Button>
-          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
-            <LayoutGrid className="size-3.5 mr-1" />
-            New Board
-          </Button>
         </div>
       </div>
 
       {/* Board tabs */}
       {boards.length > 0 && (
-        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 -mt-2">
           {boards.map((board) => (
             <button
               key={board.id}
@@ -209,7 +203,13 @@ function BoardsPage() {
 
       {/* Filter bar */}
       {selectedBoardId && (
-        <IssueFilterBar filters={filters} />
+        <IssueFilterBar
+          filters={filters}
+          showClosed={showClosed}
+          onToggleClosed={toggleClosed}
+          onShowCreate={() => setShowCreateDialog(true)}
+          createLabel="New Board"
+        />
       )}
 
       {/* Board/List content */}
@@ -217,7 +217,7 @@ function BoardsPage() {
         viewMode === 'board' ? (
           <SwimlaneBoardView
             issues={issues}
-            onIssueClick={(issueId) => setSelectedIssueId(issueId)}
+            onIssueClick={handleIssueClick}
             columns={visibleColumns}
             isLoading={boardDetailQuery.isLoading}
             emptyMessage="No issues match this board's query."
