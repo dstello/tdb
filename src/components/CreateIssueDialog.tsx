@@ -17,7 +17,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
 
 const createIssueSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(500),
+  title: z.string(),
   type: z.string().optional(),
   priority: z.string().optional(),
   description: z.string().max(10000).optional(),

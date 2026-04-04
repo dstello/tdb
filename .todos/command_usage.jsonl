@@ -25,3 +25,15 @@
 {"ts":"2026-03-29T16:10:01.527624-07:00","cmd":"help","ok":true,"dur_ms":0}
 {"ts":"2026-03-29T16:10:06.914579-07:00","cmd":"help","ok":true,"dur_ms":0}
 {"ts":"2026-03-29T16:10:12.631559-07:00","cmd":"serve","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:05:46.513191-07:00","cmd":"","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:05:51.713205-07:00","cmd":"create","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:05:57.617277-07:00","cmd":"server","ok":false,"dur_ms":0,"err":"unknown command \"server\" for \"td\"\n\nDid you mean this?\n\tserve\n"}
+{"ts":"2026-04-03T21:06:01.762037-07:00","cmd":"serve","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:06:01.795989-07:00","cmd":"config","ok":false,"dur_ms":0,"err":"unknown command \"config\" for \"td\""}
+{"ts":"2026-04-03T21:08:34.64208-07:00","cmd":"update","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:08:34.66417-07:00","cmd":"version","ok":true,"dur_ms":241}
+{"ts":"2026-04-03T21:09:10.133137-07:00","cmd":"version","ok":true,"dur_ms":56}
+{"ts":"2026-04-03T21:09:15.241795-07:00","cmd":"create","ok":true,"dur_ms":0}
+{"ts":"2026-04-03T21:09:33.939934-07:00","cmd":"","ok":true,"dur_ms":1}
+{"ts":"2026-04-03T21:10:39.231423-07:00","cmd":"delete","session":"ses_eb678a","ok":true,"dur_ms":59}
+{"ts":"2026-04-03T21:17:23.169602-07:00","cmd":"delete","session":"ses_eb678a","ok":true,"dur_ms":70}

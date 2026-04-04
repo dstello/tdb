@@ -18,7 +18,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
 
 const createEpicSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(500),
+  title: z.string(),
   priority: z.string().optional(),
   description: z.string().max(10000).optional(),
 })
