@@ -1,6 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table"
 
 import { Checkbox } from "~/components/ui/checkbox"
+import { CopyableId } from "~/components/CopyableId"
 
 import { types, statuses, priorities } from "./data"
 import { type Issue } from "~/lib/api"
@@ -52,9 +53,7 @@ export const columns: ColumnDef<Issue>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <span className="font-mono text-[11px] text-muted-foreground">
-          {(row.getValue("id") as string).slice(0, 8)}
-        </span>
+        <CopyableId id={row.getValue("id") as string} truncate={8} className="text-[11px] text-muted-foreground" />
       )
     },
     enableSorting: false,

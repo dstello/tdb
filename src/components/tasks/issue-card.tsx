@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { type Issue } from '~/lib/api'
 import { types, priorities } from './data'
 import { Badge } from '~/components/ui/badge'
+import { CopyableId } from '~/components/CopyableId'
 import {
   CalendarClock,
   CalendarCheck,
@@ -43,7 +44,7 @@ export const IssueCard = memo(function IssueCard({
         </span>
       </div>
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="font-mono text-[10px] text-muted-foreground">{issue.id.slice(0, 10)}</span>
+        <CopyableId id={issue.id} truncate={10} className="text-[10px] text-muted-foreground" />
         {priority && (
           <span className={`inline-flex items-center gap-0.5 rounded px-1 py-px text-[10px] font-medium ${priority.className}`}>
             <priority.icon className="size-2.5" />

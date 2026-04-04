@@ -29,6 +29,7 @@ import {
   LockOpen,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
+import { CopyableId } from '~/components/CopyableId'
 import { validateIssueSearch } from '~/lib/search-params'
 import { useSearchParamFilters } from '~/lib/use-search-param-filters'
 
@@ -90,13 +91,15 @@ function EpicDetailPage() {
   const priority = epic ? priorities.find((p) => p.value === epic.priority.toLowerCase()) : null
   const transitions = epic ? (transitionMap[epic.status] ?? []) : []
 
-  const totalChildren = children.length
-  const closedChildren = children.filter((c) => c.status === 'closed').length
+  const nonEpicChildren = children.filter((c) => c.type !== 'epic')
+
+  const totalChildren = nonEpicChildren.length
+  const closedChildren = nonEpicChildren.filter((c) => c.status === 'closed').length
   const progress = totalChildren > 0 ? Math.round((closedChildren / totalChildren) * 100) : 0
 
   const preFiltered = showClosed
-    ? children
-    : children.filter((c) => c.status !== 'closed')
+    ? nonEpicChildren
+    : nonEpicChildren.filter((c) => c.status !== 'closed')
 
   const filters = useIssueFilters(preFiltered, filterState, filterSetters, resetFilters)
   const filteredChildren = filters.filtered
@@ -154,7 +157,7 @@ function EpicDetailPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-medium">{epic.title}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="font-mono text-[11px] text-muted-foreground/50">{epic.id}</span>
+              <CopyableId id={epic.id} className="text-[11px] text-muted-foreground/50" />
               {status && (
                 <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${status.className}`}>
                   <status.icon className="size-2.5" />

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { getActivityIcon } from '~/lib/activity-icons'
 import { cn } from '~/lib/utils'
+import { CopyableId } from '~/components/CopyableId'
 
 export const Route = createFileRoute('/issues/$id')({
   params: z.object({
@@ -211,7 +212,7 @@ function IssueDetailPage() {
                 {issueType.label}
               </span>
             )}
-            <span className="text-[11px] font-mono text-muted-foreground/60">{loadedIssue.id}</span>
+            <CopyableId id={loadedIssue.id} className="text-[11px] text-muted-foreground/60" />
             {status && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${(status as any).className ?? ''}`}>
                 <status.icon className="size-3" />

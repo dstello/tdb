@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { getActivityIcon } from "~/lib/activity-icons";
+import { CopyableId } from "~/components/CopyableId";
 
 const typeOptions = [
   { value: "task", label: "Task" },
@@ -314,8 +315,8 @@ export function IssueQuickView({ issueId, onClose }: IssueQuickViewProps) {
       <DrawerContent className="sm:max-w-md overflow-y-auto border-l border-border/60 select-text" data-vaul-no-drag>
         <DrawerHeader className="flex flex-col gap-1 pb-3">
           <div className="flex items-center justify-between gap-2">
-            <DrawerDescription className="font-mono text-[11px]">
-              {issueId.slice(0, 8)}
+            <DrawerDescription asChild>
+              <CopyableId id={issueId} truncate={8} className="text-[11px] text-muted-foreground" />
             </DrawerDescription>
             <div className="flex items-center gap-0.5 shrink-0">
               {issue && !isEditing && (
