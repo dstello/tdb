@@ -24,6 +24,7 @@ function DashboardPage() {
     queryKey: ["stats"],
     queryFn: fetchStats,
     refetchInterval: 60_000,
+    retry: 1,
   });
 
   const monitorQuery = useQuery({
@@ -67,9 +68,9 @@ function DashboardPage() {
   });
 
   const isLoading =
-    statsQuery.isLoading || monitorQuery.isLoading;
+    monitorQuery.isLoading;
 
-  const error = statsQuery.error || monitorQuery.error;
+  const error = monitorQuery.error;
 
   if (error) {
     return (
