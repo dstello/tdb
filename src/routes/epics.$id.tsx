@@ -86,7 +86,8 @@ function EpicDetailPage() {
   })
 
   const epic = epicQuery.data?.issue
-  const children = childrenQuery.data?.issues ?? []
+  // Only show direct children of this epic, not nested descendants
+  const children = (childrenQuery.data?.issues ?? []).filter((c) => c.parent_id === id)
   const status = epic ? statuses.find((s) => s.value === epic.status) : null
   const priority = epic ? priorities.find((p) => p.value === epic.priority.toLowerCase()) : null
   const transitions = epic ? (transitionMap[epic.status] ?? []) : []

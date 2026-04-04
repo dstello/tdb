@@ -61,7 +61,8 @@ function BoardsPage() {
     filterState, filterSetters, resetFilters,
     viewMode, setViewMode,
     showClosed, toggleClosed,
-  } = useSearchParamFilters(search, { pageKey: 'boards', defaultView: 'board' })
+    hideSubtasks, toggleSubtasks,
+  } = useSearchParamFilters(search, { pageKey: 'boards', defaultView: 'board', defaultHideSubtasks: true })
 
   const boardsQuery = useQuery({
     queryKey: ['boards'],
@@ -91,7 +92,11 @@ function BoardsPage() {
 
   const boardIssues = boardDetailQuery.data?.issues ?? []
   const allIssues: Issue[] = boardIssues.map((bi) => bi.issue)
-  const preFiltered = showClosed ? allIssues : allIssues.filter((i) => i.status !== 'closed')
+  const preFiltered = allIssues.filter((i) => {
+    if (!showClosed && i.status === 'closed') return false
+    if (hideSubtasks && i.parent_id) return false
+    return true
+  })
 
   const filters = useIssueFilters(preFiltered, filterState, filterSetters, resetFilters)
   const issues = filters.filtered
@@ -207,6 +212,8 @@ function BoardsPage() {
           filters={filters}
           showClosed={showClosed}
           onToggleClosed={toggleClosed}
+          hideSubtasks={hideSubtasks}
+          onToggleSubtasks={toggleSubtasks}
           onShowCreate={() => setShowCreateDialog(true)}
           createLabel="New Board"
         />
