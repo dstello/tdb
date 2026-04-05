@@ -301,6 +301,7 @@ export function fetchIssues(params?: {
   type?: string
   parent?: string
   status?: string
+  include_closed?: boolean
   limit?: number
   offset?: number
 }) {
@@ -308,6 +309,7 @@ export function fetchIssues(params?: {
   if (params?.type) sp.set('type', params.type)
   if (params?.parent) sp.set('parent', params.parent)
   if (params?.status) sp.set('status', params.status)
+  if (params?.include_closed) sp.set('include_closed', 'true')
   if (params?.limit) sp.set('limit', String(params.limit))
   if (params?.offset) sp.set('offset', String(params.offset))
   const qs = sp.toString()

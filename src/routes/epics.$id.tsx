@@ -83,7 +83,7 @@ function EpicDetailPage() {
 
   const childrenQuery = useQuery({
     queryKey: ['issues', 'children', id],
-    queryFn: () => fetchIssues({ parent: id, limit: 500 }),
+    queryFn: () => fetchIssues({ parent: id, include_closed: true, limit: 500 }),
   })
 
   const epic = epicQuery.data?.issue
