@@ -1,5 +1,5 @@
 import { type Row } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, CheckCircle2, ShieldAlert, Undo2 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { Button } from "~/components/ui/button"
@@ -62,7 +62,39 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   }
 
   return (
-    <DropdownMenu>
+    <div className="flex items-center justify-end gap-1" data-no-row-click>
+      {issue.status === 'in_review' && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+            onClick={() => handleTransition('approve')}
+            title="Approve"
+          >
+            <CheckCircle2 />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+            onClick={() => handleTransition('block')}
+            title="Block"
+          >
+            <ShieldAlert />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+            onClick={() => handleTransition('reject')}
+            title="Back to Ready"
+          >
+            <Undo2 />
+          </Button>
+        </>
+      )}
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -95,5 +127,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   )
 }
