@@ -228,7 +228,7 @@ export function deleteIssue(id: string) {
 }
 
 // Status transitions
-type TransitionAction =
+export type TransitionAction =
   | 'start'
   | 'review'
   | 'approve'

@@ -1,21 +1,27 @@
 import { memo } from 'react'
-import { type Issue } from '~/lib/api'
+import { type Issue, type TransitionAction } from '~/lib/api'
 import { types, priorities } from './data'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { CopyableId } from '~/components/CopyableId'
 import {
   CalendarClock,
   CalendarCheck,
   AlertCircle,
+  CheckCircle2,
+  ShieldAlert,
+  Undo2,
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 export const IssueCard = memo(function IssueCard({
   issue,
   onClick,
+  onTransition,
 }: {
   issue: Issue
   onClick: (id: string) => void
+  onTransition?: (issueId: string, action: TransitionAction) => void
 }) {
   const issueType = types.find((t) => t.value === issue.type)
   const priority = priorities.find((p) => p.value === issue.priority.toLowerCase())
@@ -70,6 +76,37 @@ export const IssueCard = memo(function IssueCard({
               {dueDate.toLocaleDateString()}
             </span>
           )}
+        </div>
+      )}
+      {issue.status === 'in_review' && onTransition && (
+        <div className="flex items-center gap-1 mt-1 pt-1.5 border-t border-border/30">
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 flex-1"
+            onClick={(e) => { e.stopPropagation(); onTransition(issue.id, 'approve') }}
+          >
+            <CheckCircle2 className="size-3" />
+            Approve
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-red-500 hover:text-red-600 hover:bg-red-500/10 flex-1"
+            onClick={(e) => { e.stopPropagation(); onTransition(issue.id, 'block') }}
+          >
+            <ShieldAlert className="size-3" />
+            Block
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 flex-1"
+            onClick={(e) => { e.stopPropagation(); onTransition(issue.id, 'reject') }}
+          >
+            <Undo2 className="size-3" />
+            Ready
+          </Button>
         </div>
       )}
     </button>

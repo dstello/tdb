@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchMonitor, fetchStats, deleteIssue, getSafeErrorMessage, type Issue } from '~/lib/api'
+import { fetchMonitor, fetchStats, deleteIssue, transitionIssue, getSafeErrorMessage, type Issue, type TransitionAction } from '~/lib/api'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
 import { DataTable } from '~/components/tasks/data-table'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
@@ -63,6 +63,19 @@ function Dashboard() {
     },
     onError: console.error,
   })
+
+  const transitionMut = useMutation({
+    mutationFn: ({ issueId, action }: { issueId: string; action: TransitionAction }) =>
+      transitionIssue(issueId, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+    },
+  })
+
+  const handleTransition = useCallback((issueId: string, action: TransitionAction) => {
+    transitionMut.mutate({ issueId, action })
+  }, [transitionMut])
 
   const monitor = useQuery({
     queryKey: ['monitor', true],
@@ -255,6 +268,7 @@ function Dashboard() {
         <SwimlaneBoardView
           issues={issues}
           onIssueClick={handleIssueClick}
+          onTransition={handleTransition}
           showClosed={showClosed}
           isLoading={monitor.isLoading}
           emptyMessage="No issues yet."

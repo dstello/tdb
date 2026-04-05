@@ -8,9 +8,11 @@ import {
   createBoard,
   updateBoard,
   deleteBoard,
+  transitionIssue,
   getSafeErrorMessage,
   type Board,
   type Issue,
+  type TransitionAction,
 } from '~/lib/api'
 import { IssueQuickView } from '~/components/IssueQuickView'
 import { SwimlaneBoardView } from '~/components/tasks/swimlane-board'
@@ -89,6 +91,19 @@ function BoardsPage() {
       if (activeBoardId) setActiveBoardId(null)
     },
   })
+
+  const transitionMut = useMutation({
+    mutationFn: ({ issueId, action }: { issueId: string; action: TransitionAction }) =>
+      transitionIssue(issueId, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['board', selectedBoardId] })
+      queryClient.invalidateQueries({ queryKey: ['boards'] })
+    },
+  })
+
+  const handleTransition = useCallback((issueId: string, action: TransitionAction) => {
+    transitionMut.mutate({ issueId, action })
+  }, [transitionMut])
 
   const boardIssues = boardDetailQuery.data?.issues ?? []
   const allIssues: Issue[] = boardIssues.map((bi) => bi.issue)
@@ -225,6 +240,7 @@ function BoardsPage() {
           <SwimlaneBoardView
             issues={issues}
             onIssueClick={handleIssueClick}
+            onTransition={handleTransition}
             columns={visibleColumns}
             isLoading={boardDetailQuery.isLoading}
             emptyMessage="No issues match this board's query."

@@ -1,4 +1,4 @@
-import { type Issue } from '~/lib/api'
+import { type Issue, type TransitionAction } from '~/lib/api'
 import { statuses } from './data'
 import { IssueCard } from './issue-card'
 import { Check } from 'lucide-react'
@@ -14,6 +14,7 @@ const defaultColumns = [
 export interface SwimlaneBoardProps {
   issues: Issue[]
   onIssueClick: (issueId: string) => void
+  onTransition?: (issueId: string, action: TransitionAction) => void
   showClosed?: boolean
   columns?: ReadonlyArray<{ status: string; label: string }>
   isLoading?: boolean
@@ -23,6 +24,7 @@ export interface SwimlaneBoardProps {
 export function SwimlaneBoardView({
   issues,
   onIssueClick,
+  onTransition,
   showClosed = false,
   columns = defaultColumns,
   isLoading = false,
@@ -64,6 +66,7 @@ export function SwimlaneBoardView({
                     key={issue.id}
                     issue={issue}
                     onClick={onIssueClick}
+                    onTransition={onTransition}
                   />
                 ))}
                 {colIssues.length === 0 && (

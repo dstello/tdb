@@ -7,6 +7,7 @@ import {
   fetchIssues,
   transitionIssue,
   type Issue,
+  type TransitionAction,
 } from '~/lib/api'
 import { statuses, priorities } from '~/components/tasks/data'
 import { columns, type IssueTableMeta } from '~/components/tasks/columns'
@@ -118,6 +119,20 @@ function EpicDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['monitor'] })
     },
   })
+
+  const childTransitionMut = useMutation({
+    mutationFn: ({ issueId, action }: { issueId: string; action: TransitionAction }) =>
+      transitionIssue(issueId, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['issues', 'children', id] })
+      queryClient.invalidateQueries({ queryKey: ['issue', id] })
+      queryClient.invalidateQueries({ queryKey: ['monitor'] })
+    },
+  })
+
+  const handleChildTransition = (issueId: string, action: TransitionAction) => {
+    childTransitionMut.mutate({ issueId, action })
+  }
 
   const parentNames = useMemo(() => {
     const map = new Map<string, string>()
@@ -238,6 +253,7 @@ function EpicDetailPage() {
         <SwimlaneBoardView
           issues={filteredChildren}
           onIssueClick={(issueId) => setSelectedIssueId(issueId)}
+          onTransition={handleChildTransition}
           showClosed={showClosed}
           isLoading={childrenQuery.isLoading}
           emptyMessage="No subtasks yet. Add one to get started."
