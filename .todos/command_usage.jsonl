@@ -38,3 +38,4 @@
 {"ts":"2026-04-03T21:10:39.231423-07:00","cmd":"delete","session":"ses_eb678a","ok":true,"dur_ms":59}
 {"ts":"2026-04-03T21:17:23.169602-07:00","cmd":"delete","session":"ses_eb678a","ok":true,"dur_ms":70}
 {"ts":"2026-04-03T21:17:16.952566-07:00","cmd":"serve","flags":{"cors":"http://localhost:5173","port":"54321"},"session":"ses_cd9250","ok":true,"dur_ms":1012481}
+{"ts":"2026-04-04T17:16:27.30942-07:00","cmd":"list","flags":{"status":"[open]"},"ok":true,"dur_ms":9}

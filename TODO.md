@@ -7,5 +7,5 @@
 - [x] Code review and refactor as needed to improve code quality, maintainability, and performance.
 - [x] fix invalid date in activity
 - [x] epic board and issues list is showing all subtasks instead of just the ones for the current task
-- [ ] the list of epics view does not show the correct count "no subtasks"
+- [x] the list of epics view does not show the correct count "no subtasks"
 - [ ] An agentic chat interface for creating and managing tasks, with support for natural language commands and interactions.
