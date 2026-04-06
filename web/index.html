@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>td — External memory for AI coding sessions</title>
+  <meta name="description" content="A minimalist CLI that gives your AI agents persistent context. The next session picks up exactly where the last one left off.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080a;
+      --bg-raised: #111114;
+      --bg-surface: #18181c;
+      --border: #252529;
+      --border-subtle: #1c1c20;
+      --text: #e2ded6;
+      --text-muted: #7a7670;
+      --text-dim: #4a4743;
+      --accent: #c9a87c;
+      --accent-dim: #c9a87c33;
+      --green: #6bc77a;
+      --blue: #6ba3c7;
+      --amber: #c7a86b;
+      --red: #c76b6b;
+      --purple: #9b7ec7;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'Outfit', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', 'SF Mono', monospace;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      font-weight: 300;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ========= NAV ========= */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: #08080acc;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .nav-logo span { color: var(--text-dim); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      font-size: 0.75rem !important;
+      font-family: var(--mono) !important;
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      transition: all 0.25s !important;
+    }
+
+    .nav-cta:hover {
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
+    /* ========= LAYOUT ========= */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    section { padding: 6rem 0; }
+
+    /* ========= HERO ========= */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 5rem;
+      position: relative;
+    }
+
+    /* Radial glow behind hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    .hero-overline {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      max-width: 14ch;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.15s forwards;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      margin-top: 2rem;
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 48ch;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+
+    .hero-actions {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.45s forwards;
+    }
+
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 0.75rem 1.75rem;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 0.75rem 1.75rem;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .hero-terminal {
+      margin-top: 5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+
+    /* ========= TERMINAL BLOCK ========= */
+    .terminal {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .terminal-title {
+      margin-left: 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.85;
+      overflow-x: auto;
+    }
+
+    .terminal-body .prompt { color: var(--text-dim); }
+    .terminal-body .cmd { color: var(--text); }
+    .terminal-body .flag { color: var(--accent); }
+    .terminal-body .str { color: var(--green); }
+    .terminal-body .comment { color: var(--text-dim); font-style: italic; }
+    .terminal-body .output { color: var(--text-muted); }
+
+    /* ========= LIFECYCLE ========= */
+    .lifecycle-section {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .section-heading {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 52ch;
+      margin-bottom: 3.5rem;
+    }
+
+    /* Flow diagram */
+    .lifecycle-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 3rem 0;
+      flex-wrap: wrap;
+    }
+
+    .lf-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .lf-pill {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.55rem 1.25rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .lf-pill:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .lf-node-label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .lf-pill.is-open { border-color: var(--blue); color: var(--blue); }
+    .lf-pill.is-progress { border-color: var(--amber); color: var(--amber); }
+    .lf-pill.is-review { border-color: var(--purple); color: var(--purple); }
+    .lf-pill.is-closed { border-color: var(--green); color: var(--green); }
+    .lf-pill.is-blocked { border-color: var(--red); color: var(--red); }
+
+    .lf-arrow {
+      font-family: var(--mono);
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      padding: 0 0.75rem;
+      user-select: none;
+    }
+
+    .lf-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    .lf-branch-line {
+      width: 1px;
+      height: 1.5rem;
+      background: var(--text-dim);
+      opacity: 0.3;
+    }
+
+    /* ========= FEATURES ========= */
+    .features-section {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      padding: 2.5rem 2rem;
+      transition: background 0.3s;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-raised);
+    }
+
+    .feature-icon {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-icon::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    .feature-card h3 {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 400;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ========= QUICKSTART ========= */
+    .quickstart-section {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .quickstart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .qs-step {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .qs-step-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+
+    .qs-step h3 {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 400;
+    }
+
+    .qs-step p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ========= CTA ========= */
+    .cta-section {
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      padding: 8rem 0;
+    }
+
+    .cta-section h2 {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      max-width: 40ch;
+      margin-inline: auto;
+    }
+
+    .cta-install {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      padding: 0.85rem 1.75rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.25s;
+      color: var(--text);
+    }
+
+    .cta-install:hover {
+      border-color: var(--accent);
+    }
+
+    .cta-install .copy-hint {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      padding: 0.15rem 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    /* ========= FOOTER ========= */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer span {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--accent); }
+
+    /* ========= ANIMATIONS ========= */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ========= RESPONSIVE ========= */
+    @media (max-width: 768px) {
+      .container { padding: 0 1.25rem; }
+      section { padding: 4rem 0; }
+      .nav-links { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .quickstart-grid { grid-template-columns: 1fr; }
+      .lifecycle-flow { gap: 0.25rem; }
+      .lf-arrow { padding: 0 0.35rem; font-size: 0.9rem; }
+      .lf-pill { font-size: 0.7rem; padding: 0.4rem 0.85rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">td<span>_</span></a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="https://td.haplab.com/docs/core-workflow">Docs</a></li>
+      <li><a href="https://github.com/haplab/td" class="nav-cta">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="container">
+    <section class="hero">
+      <p class="hero-overline">Task memory for AI agents</p>
+      <h1>Your agents forget. <em>td remembers.</em></h1>
+      <p class="hero-sub">
+        A minimalist CLI that gives AI coding sessions persistent context.
+        The next agent picks up exactly where the last one left off &mdash;
+        no re-explaining, no lost decisions.
+      </p>
+      <div class="hero-actions">
+        <a href="#get-started" class="btn-primary">Get Started</a>
+        <a href="https://td.haplab.com/docs/core-workflow" class="btn-ghost">Read the Docs</a>
+      </div>
+
+      <div class="hero-terminal">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <span class="terminal-title">~/project</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="prompt">$</span> <span class="cmd">td create</span> <span class="str">"Add user auth"</span> <span class="flag">--type</span> feature <span class="flag">--priority</span> P1</div>
+            <div class="output">Created td-a1b2 &middot; Add user auth &middot; P1 feature</div>
+            <br>
+            <div><span class="prompt">$</span> <span class="cmd">td start</span> td-a1b2</div>
+            <div class="output">Started td-a1b2 &middot; session s-7f3c</div>
+            <br>
+            <div><span class="prompt">$</span> <span class="cmd">td log</span> <span class="flag">--decision</span> <span class="str">"Using JWT for stateless auth"</span></div>
+            <div class="output">Logged decision on td-a1b2</div>
+            <br>
+            <div><span class="prompt">$</span> <span class="cmd">td handoff</span> td-a1b2 <span class="flag">--done</span> <span class="str">"OAuth flow, token storage"</span> <span class="flag">--remaining</span> <span class="str">"Refresh rotation"</span></div>
+            <div class="output">Handed off td-a1b2 &middot; ready for next session</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIFECYCLE -->
+    <section class="lifecycle-section" id="how-it-works">
+      <p class="section-label">How it works</p>
+      <h2 class="section-heading">Structured lifecycle,<br>clean handoffs</h2>
+      <p class="section-sub">
+        Every issue moves through a clear workflow.
+        Handoffs capture what was done, what's left, and decisions made &mdash;
+        so nothing falls through the cracks.
+      </p>
+
+      <div class="lifecycle-flow">
+        <div class="lf-node">
+          <div class="lf-pill is-open">open</div>
+          <span class="lf-node-label">Ready</span>
+        </div>
+        <span class="lf-arrow">&rarr;</span>
+        <div class="lf-node">
+          <div class="lf-pill is-progress">in_progress</div>
+          <span class="lf-node-label">Working</span>
+        </div>
+        <span class="lf-arrow">&rarr;</span>
+        <div class="lf-node">
+          <div class="lf-pill is-review">in_review</div>
+          <span class="lf-node-label">Review</span>
+        </div>
+        <span class="lf-arrow">&rarr;</span>
+        <div class="lf-node">
+          <div class="lf-pill is-closed">closed</div>
+          <span class="lf-node-label">Done</span>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;margin-top:0.5rem;">
+        <div class="lf-branch">
+          <div class="lf-branch-line"></div>
+          <div class="lf-pill is-blocked">blocked</div>
+          <span class="lf-node-label">Waiting</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features-section" id="features">
+      <p class="section-label">Why td</p>
+      <h2 class="section-heading">Built for how agents<br>actually work</h2>
+      <p class="section-sub">
+        AI sessions are ephemeral. Your project state shouldn't be.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">01</div>
+          <h3>Handoffs</h3>
+          <p>
+            Capture what was done, what remains, decisions made, and open questions.
+            The next session picks up without guessing.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">02</div>
+          <h3>Session isolation</h3>
+          <p>
+            The implementing session cannot approve its own work &mdash;
+            mirroring real code review and preventing unchecked changes.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">03</div>
+          <h3>Structured logs</h3>
+          <p>
+            Decisions, blockers, and progress are logged with intent &mdash;
+            not buried in chat scrollback.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICKSTART -->
+    <section class="quickstart-section" id="get-started">
+      <p class="section-label">Get started</p>
+      <h2 class="section-heading">Two minutes to first issue</h2>
+      <p class="section-sub">
+        Install the CLI, create your first task, and let your agents take it from there.
+      </p>
+
+      <div class="quickstart-grid">
+        <div class="qs-step">
+          <div class="terminal" style="flex:1">
+            <div class="terminal-bar">
+              <div class="terminal-dot"></div>
+              <div class="terminal-dot"></div>
+              <div class="terminal-dot"></div>
+              <span class="terminal-title">Install</span>
+            </div>
+            <div class="terminal-body">
+              <div><span class="prompt">$</span> <span class="cmd">go install</span> github.com/haplab/td@latest</div>
+              <br>
+              <div><span class="prompt">$</span> <span class="cmd">td init</span></div>
+              <div class="output">Initialized .todos/ in project root</div>
+              <br>
+              <div><span class="prompt">$</span> <span class="cmd">td serve</span> <span class="flag">--port</span> 54321</div>
+              <div class="output">Serving on http://localhost:54321</div>
+            </div>
+          </div>
+        </div>
+        <div class="qs-step">
+          <div class="terminal" style="flex:1">
+            <div class="terminal-bar">
+              <div class="terminal-dot"></div>
+              <div class="terminal-dot"></div>
+              <div class="terminal-dot"></div>
+              <span class="terminal-title">Use</span>
+            </div>
+            <div class="terminal-body">
+              <div><span class="prompt">$</span> <span class="cmd">td create</span> <span class="str">"Fix auth bug"</span> <span class="flag">--type</span> bug</div>
+              <div class="output">Created td-x8k2</div>
+              <br>
+              <div><span class="prompt">$</span> <span class="cmd">td next</span></div>
+              <div class="output">td-x8k2 &middot; Fix auth bug &middot; P2 bug</div>
+              <br>
+              <div><span class="prompt">$</span> <span class="cmd">td start</span> td-x8k2</div>
+              <div class="output">Started &middot; session s-2a91</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2>Stop re-explaining.<br>Start handing off.</h2>
+      <p>Give your AI agents the memory they've been missing.</p>
+      <button class="cta-install" onclick="navigator.clipboard.writeText('go install github.com/haplab/td@latest');this.querySelector('.copy-hint').textContent='copied!'">
+        go install github.com/haplab/td@latest
+        <span class="copy-hint">copy</span>
+      </button>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="container">
+      <span>&copy; 2025 Haplab</span>
+      <div style="display:flex;gap:1.5rem;">
+        <a href="https://td.haplab.com/docs/core-workflow">Docs</a>
+        <a href="https://github.com/haplab/td">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+</body>
+</html>
