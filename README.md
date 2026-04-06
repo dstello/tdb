@@ -38,11 +38,17 @@ The session that implements a task can't approve its own work. This mirrors real
 
 You need [td](https://td.haplab.com) installed and running as a backend server.
 
-```bash
-# In your project — start the td server
-td serve --port 54321 --cors http://localhost:5173
+**1. Start the td server from your project directory** — this is the project whose tasks you want to manage. td stores its data in a `.todos/` folder in that directory, so it needs to run from there.
 
-# In the tdb repo — start the frontend
+```bash
+cd ~/your-project
+td serve --port 54321 --cors http://localhost:5173
+```
+
+**2. Start tdb in a separate terminal:**
+
+```bash
+cd ~/path-to-tdb
 npm install
 npm run dev
 ```
