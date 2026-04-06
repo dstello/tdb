@@ -2,11 +2,15 @@
 
 **td in the browser** — a visual interface for [td](https://td.haplab.com), the task tracker built for AI coding sessions.
 
+![Epic list view](assets/epic.png)
+
 AI agents are ephemeral. Each session starts fresh with no memory of what came before — what was tried, what was decided, what's left to do. Context gets lost, work gets repeated, and decisions get revisited.
 
 **td** fixes this. It's external memory for your project: a minimalist CLI that tracks issues, logs decisions, and structures handoffs between sessions so the next agent picks up exactly where the last one left off.
 
 **tdb** puts that same system in a browser — a swimlane board, filterable data table, and quick-view drawer for managing your issues visually alongside the CLI.
+
+![Epic boards view](assets/epics.png)
 
 ## What td does
 
