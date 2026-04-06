@@ -1,119 +1,62 @@
-# tdb - td in the browser
+# tdb
 
-[td](https://td.haplab.com) is a minimalist CLI for tracking tasks across AI coding sessions. It acts as external memory for your project -- so the next agent session picks up exactly where the last one left off, without pasting context or re-explaining state.
+**td in the browser** — a visual interface for [td](https://td.haplab.com), the task tracker built for AI coding sessions.
 
-tdb connects to the `td serve` backend API and provides a filterable, sortable data table for managing issues through their lifecycle.
+AI agents are ephemeral. Each session starts fresh with no memory of what came before — what was tried, what was decided, what's left to do. Context gets lost, work gets repeated, and decisions get revisited.
+
+**td** fixes this. It's external memory for your project: a minimalist CLI that tracks issues, logs decisions, and structures handoffs between sessions so the next agent picks up exactly where the last one left off.
+
+**tdb** puts that same system in a browser — a swimlane board, filterable data table, and quick-view drawer for managing your issues visually alongside the CLI.
+
+## What td does
+
+Every issue follows a clear lifecycle:
+
+```
+open → in_progress → in_review → closed
+            ↓
+         blocked
+```
+
+Along the way, td captures the things that matter:
+
+- **Decisions** — why you chose JWT over sessions, why you picked Postgres over SQLite
+- **Blockers** — what's stuck and why, so the next session doesn't hit the same wall
+- **Handoffs** — a structured summary of done, remaining, and open questions
+
+When a session ends, it hands off. When the next session starts, it picks up. No copy-pasting chat logs. No re-explaining state.
+
+### Session isolation
+
+The session that implements a task can't approve its own work. This mirrors real code review — a different session (or a human) reviews and closes the issue, catching things the implementing session might have missed.
 
 ## Getting Started
 
-### Prerequisites
+You need [td](https://td.haplab.com) installed and running as a backend server.
 
-- **Node.js** (v20+)
-- The `td` backend must be running (`td serve`) — by default it listens on `http://localhost:54321`
-
-### Install & Run
-
-**In your project using TD — start the backend server**
-
-```
+```bash
+# In your project — start the td server
 td serve --port 54321 --cors http://localhost:5173
-```
 
-**In your tdb repo — start the frontend:**
-
-```
+# In the tdb repo — start the frontend
 npm install
 npm run dev
 ```
 
-The backend API runs at **http://localhost:54321** and the dev server starts at **http://localhost:5173**.
-
-### Environment Variables
-
-| Variable          | Default                  | Description                    |
-| ----------------- | ------------------------ | ------------------------------ |
-| `VITE_TD_API_URL` | `http://localhost:54321` | Base URL of the TD backend API |
-
-Override the API URL if your backend is running elsewhere:
+The frontend runs at `http://localhost:5173` and connects to the td API at `http://localhost:54321` by default. Override with:
 
 ```
-VITE_TD_API_URL=http://192.168.1.50:54321 npm run dev
+VITE_TD_API_URL=http://your-host:54321 npm run dev
 ```
 
-### Build for Production
+### Production
 
-```
+```bash
 npm run build
 npm run start
 ```
 
-The production server runs from `.output/server/index.mjs`.
+## Learn more
 
-## How TD Works
-
-TD manages the full lifecycle of issues — from creation through review — with structured handoffs between AI sessions to prevent context loss.
-
-### Issue Lifecycle
-
-```
-open → in_progress → in_review → closed
-            |
-         blocked
-```
-
-### Quick Reference
-
-```bash
-# Create issues
-td create "Add user auth" --type feature --priority P1
-
-# Start work
-td start td-a1b2          # Begin work on an issue
-td next                    # Show highest-priority open issue
-
-# Log progress
-td log "OAuth callback working"
-td log --decision "Using JWT for stateless auth"
-td log --blocker "Unclear on refresh token rotation"
-
-# Hand off to the next session
-td handoff td-a1b2 \
-  --done "OAuth flow, token storage" \
-  --remaining "Refresh token rotation" \
-  --decision "Using JWT for stateless auth"
-
-# Review workflow
-td review td-a1b2          # Submit for review
-td approve td-a1b2         # Close the issue (different session required)
-td reject td-a1b2 --reason "Missing error handling"
-```
-
-**Types:** `bug` · `feature` · `task` · `epic` · `chore`
-**Priorities:** `P0` (critical) through `P4` (lowest), defaults to P2
-
-### Key Concepts
-
-- **Handoffs** capture what was done, what remains, decisions made, and open questions — so the next session picks up without guessing.
-- **Session isolation** ensures the implementing session cannot approve its own work, mirroring real code review.
-- **Balanced review** lets task creators approve work done by a different session (with a reason), while still blocking self-approval by implementers.
-
-See the [full workflow docs](https://td.haplab.com/docs/core-workflow) for details.
-
-## Tech Stack
-
-- **React 19** — UI framework
-- **TanStack Start** — Full-stack React framework (SSR-capable via Vite plugin)
-- **TanStack Router** — Type-safe file-based routing
-- **TanStack Query** — Server state management with automatic caching and refetching
-- **TanStack Table** — Headless data table with sorting, filtering, and pagination
-- **shadcn/ui** — Accessible component primitives (table, badge, button, dialog, command, etc.)
-- **Tailwind CSS v4** — Utility-first styling
-- **Vite 8** — Dev server and bundler
-
-## Scripts
-
-| Script          | Description                        |
-| --------------- | ---------------------------------- |
-| `npm run dev`   | Start Vite dev server on port 5173 |
-| `npm run build` | Build for production               |
-| `npm run start` | Run production server              |
+- [td documentation](https://td.haplab.com/docs/core-workflow) — core workflow, CLI reference, and configuration
+- [td on GitHub](https://github.com/haplab/td) — the CLI and backend
